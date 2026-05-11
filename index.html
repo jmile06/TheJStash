@@ -728,6 +728,11 @@
         <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
       </svg>
     </button>
+    <button class="icon-btn" id="headerBackupBtn" title="Back up now" aria-label="Back up now">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+      </svg>
+    </button>
     <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
@@ -916,12 +921,36 @@
           </div>
         </li>
         <li class="settings-item">
-          <h4>Auto Backup to Folder</h4>
-          <p>Pick a folder once. The app will silently overwrite <strong>the_j_stash.json</strong> there on every save, edit, or delete. Tip: pick a folder synced by Google Drive for free cloud backup.</p>
-          <p id="backupFolderStatus" style="margin-top:6px; font-size:12px; color:var(--text-faint);">Not set.</p>
-          <div class="settings-buttons" style="margin-top:8px;">
-            <button class="btn btn-primary" id="pickBackupBtn">Choose Folder</button>
-            <button class="btn btn-secondary" id="clearBackupBtn" style="display:none;">Disable</button>
+          <h4>Cloud Auto-Backup</h4>
+          <p>Sign in once. App silently overwrites <strong>the_j_stash.json</strong> in your cloud drive on every save, edit, and delete. Restore in one tap if your device storage is ever wiped.</p>
+          <p id="backupCloudStatus" style="margin-top:6px; font-size:12px; color:var(--text-faint);">Not connected.</p>
+
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+            <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">Google Drive</h5>
+            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Paste a Google OAuth Client ID. Setup guide: see app's README or ask Claude.</p>
+            <input type="text" class="field-input" id="googleClientId" placeholder="123456789-abc.apps.googleusercontent.com" style="margin-bottom:6px;">
+            <div class="settings-buttons">
+              <button class="btn btn-secondary" id="saveGoogleClientBtn">Save ID</button>
+              <button class="btn btn-primary" id="connectGoogleBtn">Connect Google Drive</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+            <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">OneDrive</h5>
+            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Paste a Microsoft Application (client) ID.</p>
+            <input type="text" class="field-input" id="onedriveClientId" placeholder="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" style="margin-bottom:6px;">
+            <div class="settings-buttons">
+              <button class="btn btn-secondary" id="saveOneDriveClientBtn">Save ID</button>
+              <button class="btn btn-primary" id="connectOneDriveBtn">Connect OneDrive</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+            <div class="settings-buttons">
+              <button class="btn btn-secondary" id="manualBackupNowBtn">Back Up Now</button>
+              <button class="btn btn-secondary" id="restoreFromCloudBtn">Restore from Cloud</button>
+              <button class="btn btn-danger" id="disconnectCloudBtn">Disconnect</button>
+            </div>
           </div>
         </li>
         <li class="settings-item">
@@ -2039,8 +2068,37 @@ document.getElementById('saveTmdbBtn').addEventListener('click', () => {
   else localStorage.removeItem('tmdb_token');
   showToast('TMDB key saved', 'success');
 });
-document.getElementById('pickBackupBtn').addEventListener('click', pickBackupFolder);
-document.getElementById('clearBackupBtn').addEventListener('click', clearBackupFolder);
+
+// Cloud backup wiring
+document.getElementById('saveGoogleClientBtn').addEventListener('click', () => {
+  const v = document.getElementById('googleClientId').value.trim();
+  setCloudClientId('google', v);
+  showToast('Google Client ID saved', 'success');
+});
+document.getElementById('saveOneDriveClientBtn').addEventListener('click', () => {
+  const v = document.getElementById('onedriveClientId').value.trim();
+  setCloudClientId('onedrive', v);
+  showToast('OneDrive Client ID saved', 'success');
+});
+document.getElementById('connectGoogleBtn').addEventListener('click', () => connectCloudProvider('google'));
+document.getElementById('connectOneDriveBtn').addEventListener('click', () => connectCloudProvider('onedrive'));
+document.getElementById('manualBackupNowBtn').addEventListener('click', manualCloudBackup);
+document.getElementById('restoreFromCloudBtn').addEventListener('click', restoreFromCloud);
+document.getElementById('disconnectCloudBtn').addEventListener('click', async () => {
+  if (!confirm('Disconnect from cloud? Your backup file remains in cloud storage, but the app stops uploading.')) return;
+  await clearCloudState();
+  showToast('Disconnected', 'success');
+});
+
+// Header "back up now" icon
+document.getElementById('headerBackupBtn').addEventListener('click', async () => {
+  if (cloudState.provider) {
+    await manualCloudBackup();
+  } else {
+    // No cloud configured: fall back to local JSON download.
+    document.getElementById('exportJsonBtn').click();
+  }
+});
 
 // ---------- Export ----------
 function downloadBlob(blob, filename) {
@@ -2247,90 +2305,276 @@ function buildZip(files) {
   return out;
 }
 
-// ---------- Auto-backup to a chosen folder (File System Access API) ----------
-// User picks a folder once. App stores the directory handle in IndexedDB and
-// silently writes 'the_j_stash.json' there on every save/edit/delete.
-// If the user picks a folder synced by Google Drive / OneDrive / Dropbox,
-// they also get free cloud backup.
+// ---------- Cloud auto-backup (Google Drive or OneDrive) ----------
+// User picks a provider, signs in via OAuth (PKCE flow — no client secret needed),
+// app stores the tokens in IndexedDB and silently overwrites a single file
+// 'the_j_stash.json' on every save/edit/delete. Backup files appear in:
+//   - Google Drive: top level "My Drive"
+//   - OneDrive: top level (root)
 
 const BACKUP_FILENAME = 'the_j_stash.json';
-let backupDirHandle = null; // FileSystemDirectoryHandle, hydrated on boot
-let backupWriteTimer = null;
+let cloudWriteTimer = null;
+let cloudState = {
+  provider: null,        // 'google' | 'onedrive' | null
+  accessToken: null,
+  refreshToken: null,    // Google only; MS doesn't return refresh tokens for SPAs unless we ask for offline_access
+  expiresAt: 0,
+  fileId: null,          // cached file id once we've located/created it
+};
 
-async function loadBackupHandle() {
+// Provider configurations. The user supplies the client ID per provider in Settings.
+const CLOUD_PROVIDERS = {
+  google: {
+    name: 'Google Drive',
+    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    scopes: 'https://www.googleapis.com/auth/drive.file',
+    extraAuthParams: { access_type: 'offline', prompt: 'consent' },
+  },
+  onedrive: {
+    name: 'OneDrive',
+    authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+    tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+    scopes: 'Files.ReadWrite offline_access',
+    extraAuthParams: {},
+  },
+};
+
+function getCloudClientId(provider) {
+  return localStorage.getItem(`cloud_client_id_${provider}`) || '';
+}
+function setCloudClientId(provider, id) {
+  if (id) localStorage.setItem(`cloud_client_id_${provider}`, id);
+  else localStorage.removeItem(`cloud_client_id_${provider}`);
+}
+
+async function loadCloudState() {
   try {
-    backupDirHandle = await metaGet('backup_dir');
-  } catch {
-    backupDirHandle = null;
-  }
+    const saved = await metaGet('cloud_state');
+    if (saved) cloudState = { ...cloudState, ...saved };
+  } catch {}
+  refreshBackupSettingsUI();
+}
+async function saveCloudState() {
+  await metaSet('cloud_state', cloudState);
+}
+async function clearCloudState() {
+  cloudState = { provider: null, accessToken: null, refreshToken: null, expiresAt: 0, fileId: null };
+  await metaSet('cloud_state', cloudState);
   refreshBackupSettingsUI();
 }
 
-async function pickBackupFolder() {
-  if (!('showDirectoryPicker' in window)) {
-    alert('Your browser does not support the folder picker. Use Chrome or Brave on Android, or the manual Export Backup buttons in Settings instead.');
+// ---- PKCE helpers ----
+function b64url(bytes) {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function makePkcePair() {
+  const verifierBytes = new Uint8Array(64);
+  crypto.getRandomValues(verifierBytes);
+  const verifier = b64url(verifierBytes);
+  const challengeDigest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = b64url(challengeDigest);
+  return { verifier, challenge };
+}
+
+// Connect: start OAuth flow for chosen provider.
+async function connectCloudProvider(provider) {
+  const cfg = CLOUD_PROVIDERS[provider];
+  if (!cfg) return;
+  const clientId = getCloudClientId(provider);
+  if (!clientId) {
+    showToast(`Add a ${cfg.name} Client ID in Settings first`, 'error');
     return;
   }
+  const { verifier, challenge } = await makePkcePair();
+  // Stash verifier + provider for the callback page-load to use.
+  sessionStorage.setItem('oauth_verifier', verifier);
+  sessionStorage.setItem('oauth_provider', provider);
+  const redirectUri = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: 'code',
+    redirect_uri: redirectUri,
+    scope: cfg.scopes,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    state: provider,
+    ...cfg.extraAuthParams,
+  });
+  // Navigate to the OAuth page. Browser returns here with ?code=... in the URL.
+  window.location.href = `${cfg.authUrl}?${params.toString()}`;
+}
+
+// On page load, check if we've returned from an OAuth flow.
+async function handleOAuthCallback() {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get('code');
+  const stateParam = url.searchParams.get('state');
+  const errorParam = url.searchParams.get('error');
+  if (errorParam) {
+    showToast(`OAuth error: ${errorParam}`, 'error');
+    // Clean the URL.
+    window.history.replaceState({}, '', url.pathname);
+    return;
+  }
+  if (!code || !stateParam) return;
+
+  const provider = stateParam;
+  const cfg = CLOUD_PROVIDERS[provider];
+  const verifier = sessionStorage.getItem('oauth_verifier');
+  sessionStorage.removeItem('oauth_verifier');
+  sessionStorage.removeItem('oauth_provider');
+  if (!cfg || !verifier) {
+    showToast('OAuth state lost; please try connecting again', 'error');
+    window.history.replaceState({}, '', url.pathname);
+    return;
+  }
+  const clientId = getCloudClientId(provider);
+  const redirectUri = window.location.origin + window.location.pathname;
+
   try {
-    const handle = await window.showDirectoryPicker({
-      id: 'jstash-backup',
-      mode: 'readwrite',
-      startIn: 'documents',
+    const body = new URLSearchParams({
+      client_id: clientId,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
     });
-    // Confirm we have readwrite permission. Some pickers default to read.
-    const perm = await ensureRWPermission(handle);
-    if (!perm) {
-      showToast('Write permission denied for that folder', 'error');
-      return;
+    const resp = await fetch(cfg.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Token exchange failed: ${resp.status} ${errText.slice(0, 200)}`);
     }
-    backupDirHandle = handle;
-    await metaSet('backup_dir', handle);
+    const data = await resp.json();
+    cloudState.provider = provider;
+    cloudState.accessToken = data.access_token;
+    if (data.refresh_token) cloudState.refreshToken = data.refresh_token;
+    cloudState.expiresAt = Date.now() + (data.expires_in || 3600) * 1000;
+    cloudState.fileId = null; // reset; we'll re-find/create the file on next write
+    await saveCloudState();
     refreshBackupSettingsUI();
-    showToast(`Auto-backup folder set: ${handle.name}`, 'success');
-    // Do an immediate write so the user sees the file appear.
-    await writeBackup();
+    showToast(`Connected to ${cfg.name}`, 'success');
+    // Clean the URL so the code doesn't sit in history.
+    window.history.replaceState({}, '', url.pathname);
+    // Do an immediate backup write so the user sees the file appear.
+    await scheduleAutoBackupImmediate();
   } catch (err) {
-    // AbortError = user closed picker without choosing; not an error to report.
-    if (err && err.name !== 'AbortError') {
-      showToast('Could not open folder: ' + err.message, 'error');
-    }
+    showToast('Cloud connect failed: ' + err.message, 'error');
+    window.history.replaceState({}, '', url.pathname);
   }
 }
 
-async function clearBackupFolder() {
-  if (!confirm('Stop auto-backing up to this folder? Your existing backup file will be left in place.')) return;
-  backupDirHandle = null;
-  await metaDelete('backup_dir');
-  refreshBackupSettingsUI();
-  showToast('Auto-backup disabled', 'success');
-}
-
-async function ensureRWPermission(handle) {
-  if (!handle || !handle.queryPermission) return true; // older API, assume ok
-  const opts = { mode: 'readwrite' };
-  let state = await handle.queryPermission(opts);
-  if (state === 'granted') return true;
-  state = await handle.requestPermission(opts);
-  return state === 'granted';
-}
-
-// Schedule a backup write, debounced so rapid edits coalesce into one write.
-function scheduleAutoBackup() {
-  if (!backupDirHandle) return;
-  clearTimeout(backupWriteTimer);
-  backupWriteTimer = setTimeout(() => {
-    writeBackup().catch(err => {
-      console.warn('Auto-backup write failed:', err);
+// Refresh an expired token. Returns the fresh access token, or null if it failed.
+async function refreshCloudToken() {
+  if (!cloudState.refreshToken || !cloudState.provider) return null;
+  const cfg = CLOUD_PROVIDERS[cloudState.provider];
+  const clientId = getCloudClientId(cloudState.provider);
+  try {
+    const body = new URLSearchParams({
+      client_id: clientId,
+      grant_type: 'refresh_token',
+      refresh_token: cloudState.refreshToken,
     });
+    const resp = await fetch(cfg.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!resp.ok) throw new Error('refresh failed ' + resp.status);
+    const data = await resp.json();
+    cloudState.accessToken = data.access_token;
+    if (data.refresh_token) cloudState.refreshToken = data.refresh_token;
+    cloudState.expiresAt = Date.now() + (data.expires_in || 3600) * 1000;
+    await saveCloudState();
+    return cloudState.accessToken;
+  } catch (err) {
+    console.warn('Refresh failed:', err);
+    return null;
+  }
+}
+
+async function getValidAccessToken() {
+  if (!cloudState.accessToken) return null;
+  // Refresh 60s before actual expiry for safety.
+  if (Date.now() > cloudState.expiresAt - 60_000) {
+    const fresh = await refreshCloudToken();
+    if (!fresh) return null;
+  }
+  return cloudState.accessToken;
+}
+
+// ---- Google Drive write logic ----
+async function googleFindOrCreateFile(token) {
+  // Search for existing backup file by name. drive.file scope only sees files the app created.
+  const q = encodeURIComponent(`name = '${BACKUP_FILENAME}' and trashed = false`);
+  const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  if (!searchResp.ok) throw new Error('Drive search ' + searchResp.status);
+  const searchData = await searchResp.json();
+  if (searchData.files && searchData.files.length) return searchData.files[0].id;
+  // Create empty file.
+  const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: BACKUP_FILENAME, mimeType: 'application/json' }),
+  });
+  if (!createResp.ok) throw new Error('Drive create ' + createResp.status);
+  const createData = await createResp.json();
+  return createData.id;
+}
+async function googleWriteFile(token, fileId, content) {
+  const resp = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json',
+    },
+    body: content,
+  });
+  if (!resp.ok) throw new Error('Drive write ' + resp.status);
+}
+
+// ---- OneDrive write logic ----
+async function onedriveWrite(token, content) {
+  // Microsoft Graph: PUT to /me/drive/root:/the_j_stash.json:/content overwrites or creates.
+  const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(BACKUP_FILENAME)}:/content`, {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json',
+    },
+    body: content,
+  });
+  if (!resp.ok) throw new Error('OneDrive write ' + resp.status);
+}
+
+// Debounced wrapper: rapid edits coalesce into one write.
+function scheduleAutoBackup() {
+  if (!cloudState.provider) return;
+  clearTimeout(cloudWriteTimer);
+  cloudWriteTimer = setTimeout(() => {
+    writeCloudBackup().catch(err => console.warn('Auto-backup error:', err));
   }, 1500);
 }
+async function scheduleAutoBackupImmediate() {
+  clearTimeout(cloudWriteTimer);
+  await writeCloudBackup();
+}
 
-async function writeBackup() {
-  if (!backupDirHandle) return;
-  // Permission can be silently revoked between sessions. Check before writing.
-  const ok = await ensureRWPermission(backupDirHandle);
-  if (!ok) {
-    showToast('Auto-backup permission was revoked. Re-select the folder in Settings.', 'error');
+async function writeCloudBackup() {
+  if (!cloudState.provider) return;
+  const token = await getValidAccessToken();
+  if (!token) {
+    showToast('Cloud session expired — reconnect in Settings', 'error');
     return;
   }
   const payload = {
@@ -2339,31 +2583,102 @@ async function writeBackup() {
     exportedAt: new Date().toISOString(),
     items: state.items,
   };
-  const json = JSON.stringify(payload, null, 2);
+  const content = JSON.stringify(payload, null, 2);
   try {
-    const fileHandle = await backupDirHandle.getFileHandle(BACKUP_FILENAME, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(json);
-    await writable.close();
-    // Quiet success — no toast, this runs on every change and would spam.
+    if (cloudState.provider === 'google') {
+      if (!cloudState.fileId) {
+        cloudState.fileId = await googleFindOrCreateFile(token);
+        await saveCloudState();
+      }
+      await googleWriteFile(token, cloudState.fileId, content);
+    } else if (cloudState.provider === 'onedrive') {
+      await onedriveWrite(token, content);
+    }
+    // Quiet success — no toast, runs on every change.
   } catch (err) {
-    showToast('Auto-backup failed: ' + (err.message || 'unknown'), 'error');
+    showToast('Cloud backup failed: ' + (err.message || 'unknown'), 'error');
+  }
+}
+
+// Manually trigger a backup write right now (for the Settings "Back up now" button).
+async function manualCloudBackup() {
+  if (!cloudState.provider) {
+    showToast('Connect a cloud provider first', 'error');
+    return;
+  }
+  showToast('Uploading backup...');
+  await scheduleAutoBackupImmediate();
+  if (cloudState.provider) {
+    // If still set after the call, write succeeded.
+    showToast('Backup uploaded', 'success');
   }
 }
 
 function refreshBackupSettingsUI() {
-  const status = document.getElementById('backupFolderStatus');
-  const pickBtn = document.getElementById('pickBackupBtn');
-  const clearBtn = document.getElementById('clearBackupBtn');
+  const status = document.getElementById('backupCloudStatus');
   if (!status) return;
-  if (backupDirHandle) {
-    status.textContent = `Currently backing up to: ${backupDirHandle.name}/${BACKUP_FILENAME}`;
-    if (pickBtn) pickBtn.textContent = 'Change Folder';
-    if (clearBtn) clearBtn.style.display = '';
+  if (cloudState.provider) {
+    const name = CLOUD_PROVIDERS[cloudState.provider].name;
+    status.innerHTML = `Connected to <strong>${escapeHtml(name)}</strong>. Backups go to <strong>${BACKUP_FILENAME}</strong> at the root of your drive.`;
   } else {
-    status.textContent = 'Not set. Pick a folder to enable automatic backups on every save.';
-    if (pickBtn) pickBtn.textContent = 'Choose Folder';
-    if (clearBtn) clearBtn.style.display = 'none';
+    status.textContent = 'Not connected. Pick a provider below to enable automatic cloud backups.';
+  }
+  // Populate client ID inputs if present.
+  const gId = document.getElementById('googleClientId');
+  const mId = document.getElementById('onedriveClientId');
+  if (gId) gId.value = getCloudClientId('google');
+  if (mId) mId.value = getCloudClientId('onedrive');
+}
+
+// Restore the latest backup from cloud — used when device storage is wiped.
+async function restoreFromCloud() {
+  if (!cloudState.provider) {
+    showToast('Connect a cloud provider first', 'error');
+    return;
+  }
+  if (!confirm('Restore from cloud will REPLACE current entries with cloud copy. Continue?')) return;
+  const token = await getValidAccessToken();
+  if (!token) {
+    showToast('Cloud session expired — reconnect in Settings', 'error');
+    return;
+  }
+  try {
+    let content = null;
+    if (cloudState.provider === 'google') {
+      const q = encodeURIComponent(`name = '${BACKUP_FILENAME}' and trashed = false`);
+      const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!searchResp.ok) throw new Error('Search ' + searchResp.status);
+      const searchData = await searchResp.json();
+      if (!searchData.files || !searchData.files.length) throw new Error('No backup file found in your Drive');
+      const fileId = searchData.files[0].id;
+      const downloadResp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!downloadResp.ok) throw new Error('Download ' + downloadResp.status);
+      content = await downloadResp.text();
+    } else if (cloudState.provider === 'onedrive') {
+      const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(BACKUP_FILENAME)}:/content`, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!resp.ok) throw new Error('Download ' + resp.status);
+      content = await resp.text();
+    }
+    const data = JSON.parse(content);
+    if (!data || !Array.isArray(data.items)) throw new Error('Backup file looks invalid');
+    await dbClear();
+    for (const item of data.items) {
+      if (!item.id) item.id = uid();
+      if (!item.addedAt) item.addedAt = Date.now();
+      await dbPut(item);
+    }
+    state.items = await dbGetAll();
+    renderAll();
+    updatePeakCount();
+    showToast(`Restored ${data.items.length} entries from cloud`, 'success');
+  } catch (err) {
+    showToast('Cloud restore failed: ' + err.message, 'error');
   }
 }
 
@@ -2420,7 +2735,9 @@ document.getElementById('eraseBtn').addEventListener('click', async () => {
   }
   renderAll();
   checkForDataLoss();
-  await loadBackupHandle();
+  await loadCloudState();
+  // If the page URL has ?code=... we just returned from OAuth.
+  await handleOAuthCallback();
 })();
 
 // Track the highest item count we've ever seen. If we boot up with fewer
