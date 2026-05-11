@@ -660,6 +660,11 @@
 <header class="app-header">
   <div class="brand">the j stash<span>.</span></div>
   <div class="header-actions">
+    <button class="icon-btn" id="quickScanBtn" title="Scan barcode" aria-label="Scan barcode">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
+      </svg>
+    </button>
     <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
@@ -1460,15 +1465,20 @@ function openDetail(id) {
 document.getElementById('closeDetail').addEventListener('click', () => closeModal('detailModal'));
 
 // ---------- Barcode scanning ----------
+// Two scan entry points:
+//   1. Header "quick scan" button -> scan, lookup, open prefilled form
+//   2. Scan button inside the form -> scan, lookup, fill the open form
 const scanBtn = document.getElementById('scanBtn');
-scanBtn.addEventListener('click', startScanner);
+scanBtn.addEventListener('click', () => startScanner('inForm'));
+document.getElementById('quickScanBtn').addEventListener('click', () => startScanner('quickAdd'));
 document.getElementById('closeScanner').addEventListener('click', stopScanner);
 
-async function startScanner() {
+async function startScanner(mode) {
   if (!('BarcodeDetector' in window)) {
     showToast('Camera scanning not supported on this browser. Type the barcode instead.', 'error');
     return;
   }
+  state.scannerMode = mode || 'inForm';
   try {
     const supported = await BarcodeDetector.getSupportedFormats();
     const formats = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'].filter(f => supported.includes(f));
@@ -1498,9 +1508,8 @@ async function startScanner() {
       if (codes && codes.length) {
         const code = codes[0].rawValue;
         if (code) {
-          fld.barcode.value = code;
-          stopScanner();
-          showToast(`Scanned: ${code}`, 'success');
+          state.scannerActive = false;
+          await onBarcodeScanned(code, state.scannerMode);
           return;
         }
       }
@@ -1519,10 +1528,102 @@ function stopScanner() {
   closeModal('scannerModal');
 }
 
-// ---------- Online lookup ----------
-document.getElementById('lookupBtn').addEventListener('click', doLookup);
+// Called after a successful scan. Looks up the barcode, fills the form, then shows it.
+async function onBarcodeScanned(code, mode) {
+  // Update scanner UI to show progress, keep modal open while we look up.
+  document.getElementById('scannerInfo').innerHTML = `Scanned: <strong>${escapeHtml(code)}</strong> — looking up...`;
 
-async function doLookup() {
+  // Try Discogs first (vinyl), then UPCitemdb (DVD). Whichever matches sets the type.
+  let result = null;
+  let detectedType = null;
+  try {
+    const discogsResult = await tryDiscogs(code);
+    if (discogsResult) {
+      result = discogsResult;
+      detectedType = 'vinyl';
+    }
+  } catch (err) {
+    console.warn('Discogs lookup error:', err);
+  }
+  if (!result) {
+    try {
+      const dvdResult = await lookupDvd(code);
+      if (dvdResult) {
+        result = dvdResult;
+        detectedType = 'dvd';
+      }
+    } catch (err) {
+      console.warn('UPC lookup error:', err);
+    }
+  }
+
+  // Close the scanner camera regardless of whether we found anything.
+  if (state.scannerStream) {
+    state.scannerStream.getTracks().forEach(t => t.stop());
+    state.scannerStream = null;
+  }
+  closeModal('scannerModal');
+
+  if (mode === 'quickAdd') {
+    // Open a fresh form prefilled with whatever we got.
+    clearForm();
+    fld.barcode.value = code;
+    if (detectedType) {
+      setFormType(detectedType);
+    }
+    if (result) {
+      applyLookupToForm(result);
+    }
+    openModal(formModal);
+    if (result) {
+      showToast('Found and filled. Review and save.', 'success');
+    } else {
+      showToast('No match found. Fill in the rest manually.', 'error');
+    }
+  } else {
+    // inForm: barcode field gets the scanned code; lookup result fills the rest.
+    fld.barcode.value = code;
+    if (detectedType && detectedType !== state.formType) {
+      // The user opened the form as one type but the lookup says it's another.
+      // Switch silently to match what was actually scanned.
+      setFormType(detectedType);
+    }
+    if (result) {
+      applyLookupToForm(result);
+      showToast('Found and filled. Review and save.', 'success');
+    } else {
+      showToast(`Scanned: ${code}. No online match — fill in manually.`, 'error');
+    }
+  }
+}
+
+// Apply a lookup result's fields and cover image into the form, without overwriting
+// anything the user has already typed in.
+async function applyLookupToForm(result) {
+  if (result.title && !fld.title.value) fld.title.value = result.title;
+  if (result.artist && !fld.artist.value) fld.artist.value = result.artist;
+  if (result.genre && !fld.genre.value) fld.genre.value = result.genre;
+  if (result.coverUrl && !state.formImages.cover) {
+    const dataUrl = await urlToCompressedDataURL(result.coverUrl);
+    if (dataUrl) {
+      state.formImages.cover = dataUrl;
+      refreshImageSlot('cover');
+    }
+  }
+}
+
+// Wrapper that returns null silently if the user has no Discogs token yet
+// (so we can fall through to DVD lookup without surfacing an error toast mid-flow).
+async function tryDiscogs(code) {
+  const token = localStorage.getItem('discogs_token');
+  if (!token) return null;
+  return await lookupDiscogs(code);
+}
+
+// ---------- Online lookup ----------
+document.getElementById('lookupBtn').addEventListener('click', doManualLookup);
+
+async function doManualLookup() {
   const code = fld.barcode.value.trim();
   if (!code) { showToast('Enter or scan a barcode first', 'error'); return; }
 
@@ -1532,27 +1633,34 @@ async function doLookup() {
   lblSpan.innerHTML = '<span class="spinner"></span>';
 
   try {
+    // Try the user's currently selected type first, then fall back to the other.
     let result = null;
+    let detectedType = null;
     if (state.formType === 'vinyl') {
-      result = await lookupDiscogs(code);
+      result = await tryDiscogs(code);
+      if (result) detectedType = 'vinyl';
+      else {
+        result = await lookupDvd(code);
+        if (result) detectedType = 'dvd';
+      }
     } else {
       result = await lookupDvd(code);
+      if (result) detectedType = 'dvd';
+      else {
+        result = await tryDiscogs(code);
+        if (result) detectedType = 'vinyl';
+      }
     }
+
     if (!result) {
       showToast('No match found. Fill in manually.', 'error');
       return;
     }
-    if (result.title && !fld.title.value) fld.title.value = result.title;
-    if (result.artist && !fld.artist.value) fld.artist.value = result.artist;
-    if (result.genre && !fld.genre.value) fld.genre.value = result.genre;
-    if (result.coverUrl && !state.formImages.cover) {
-      const dataUrl = await urlToCompressedDataURL(result.coverUrl);
-      if (dataUrl) {
-        state.formImages.cover = dataUrl;
-        refreshImageSlot('cover');
-      }
+    if (detectedType && detectedType !== state.formType) {
+      setFormType(detectedType);
     }
-    showToast('Lookup complete. Review and edit before saving.', 'success');
+    await applyLookupToForm(result);
+    showToast('Lookup complete. Review and save.', 'success');
   } catch (err) {
     showToast('Lookup failed: ' + (err.message || 'unknown error'), 'error');
   } finally {
@@ -1568,7 +1676,7 @@ async function lookupDiscogs(code) {
     return null;
   }
   const url = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
-  const resp = await fetch(url, { headers: { 'User-Agent': 'StacksPWA/1.0' } });
+  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/1.0' } });
   if (!resp.ok) throw new Error('Discogs ' + resp.status);
   const data = await resp.json();
   if (!data.results || !data.results.length) return null;
