@@ -290,7 +290,7 @@
     background: var(--bg);
     width: 100%;
     max-width: 600px;
-    max-height: 95vh;
+    max-height: 100vh;
     border-radius: 16px 16px 0 0;
     overflow-y: auto;
     animation: slideUp 0.25s ease-out;
@@ -302,7 +302,7 @@
   }
 
   .modal-header {
-    padding: 16px 20px;
+    padding: 12px 18px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -314,20 +314,20 @@
   }
   .modal-title {
     font-family: 'Fraunces', serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     margin: 0;
   }
-  .modal-body { padding: 20px; }
+  .modal-body { padding: 14px 18px 18px; }
 
   /* Form */
-  .field { margin-bottom: 16px; }
+  .field { margin-bottom: 10px; }
   .field-label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-dim);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
@@ -339,30 +339,30 @@
     background: var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 10px 12px;
+    padding: 8px 12px;
     color: var(--text);
     font-family: inherit;
     font-size: 14px;
     outline: none;
   }
   .field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--accent); }
-  .field-textarea { resize: vertical; min-height: 70px; }
+  .field-textarea { resize: vertical; min-height: 50px; }
 
   .type-toggle {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
   }
   .type-toggle button {
     flex: 1;
     background: var(--bg-elev);
     border: 1px solid var(--border);
     color: var(--text-dim);
-    padding: 12px;
+    padding: 8px;
     border-radius: var(--radius);
     font-family: inherit;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -373,15 +373,15 @@
     border-color: var(--accent);
   }
 
-  /* Image picker */
+  /* Image picker — wider-than-tall ratio to save vertical space on phones */
   .image-picker {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   .image-slot {
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
     background: var(--bg-elev);
     border: 1px dashed var(--border);
     border-radius: var(--radius);
@@ -391,7 +391,7 @@
     cursor: pointer;
     flex-direction: column;
     color: var(--text-faint);
-    font-size: 12px;
+    font-size: 11px;
     text-align: center;
     overflow: hidden;
     position: relative;
@@ -410,7 +410,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
-  .image-slot svg { width: 26px; height: 26px; margin-bottom: 4px; }
+  .image-slot svg { width: 22px; height: 22px; margin-bottom: 2px; }
 
   .image-actions {
     position: absolute;
@@ -432,6 +432,69 @@
     cursor: pointer;
   }
   .image-action-btn svg { width: 12px; height: 12px; margin: 0; }
+
+  /* Title autocomplete dropdown */
+  .title-field-wrap { position: relative; }
+  .autocomplete-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 5;
+    box-shadow: var(--shadow);
+    display: none;
+  }
+  .autocomplete-list.open { display: block; }
+  .autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:active, .autocomplete-item:hover { background: var(--bg-elev-2); }
+  .autocomplete-thumb {
+    width: 42px;
+    height: 42px;
+    border-radius: 4px;
+    background: var(--bg-elev-2);
+    flex-shrink: 0;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+    font-family: 'Fraunces', serif;
+  }
+  .autocomplete-text { flex: 1; min-width: 0; }
+  .autocomplete-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .autocomplete-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .autocomplete-status {
+    padding: 10px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
 
   /* Barcode row */
   .barcode-row {
@@ -461,11 +524,11 @@
   .btn-row {
     display: flex;
     gap: 10px;
-    margin-top: 24px;
+    margin-top: 14px;
   }
   .btn {
     flex: 1;
-    padding: 12px;
+    padding: 11px;
     border-radius: var(--radius);
     font-family: inherit;
     font-size: 14px;
@@ -762,7 +825,10 @@
 
       <div class="field">
         <label class="field-label" id="titleLabel">Title <span class="req">*</span></label>
-        <input type="text" class="field-input" id="fldTitle" required>
+        <div class="title-field-wrap">
+          <input type="text" class="field-input" id="fldTitle" required autocomplete="off">
+          <div class="autocomplete-list" id="titleAutocomplete" role="listbox"></div>
+        </div>
       </div>
 
       <div class="field" id="artistField" style="display:none;">
@@ -835,10 +901,18 @@
       <ul class="settings-list">
         <li class="settings-item">
           <h4>Discogs API Token</h4>
-          <p>Required for vinyl barcode lookups. Get a free token at discogs.com/settings/developers.</p>
+          <p>Required for vinyl barcode and title lookups. Get a free token at discogs.com/settings/developers.</p>
           <input type="text" class="field-input" id="discogsToken" placeholder="Paste token here">
           <div class="settings-buttons" style="margin-top:8px;">
             <button class="btn btn-primary" id="saveTokenBtn">Save Token</button>
+          </div>
+        </li>
+        <li class="settings-item">
+          <h4>TMDB API Key</h4>
+          <p>Optional. Enables DVD title autocomplete with covers, year, and genre. Get a free key at themoviedb.org/settings/api (sign up, then request an API key, "Developer" type, takes ~1 minute).</p>
+          <input type="text" class="field-input" id="tmdbToken" placeholder="Paste API Key (v3 auth)">
+          <div class="settings-buttons" style="margin-top:8px;">
+            <button class="btn btn-primary" id="saveTmdbBtn">Save Key</button>
           </div>
         </li>
         <li class="settings-item">
@@ -1265,6 +1339,9 @@ function clearForm() {
   setFormType('dvd');
   refreshImageSlot('cover');
   refreshImageSlot('secondary');
+  // Hide autocomplete if it was lingering
+  const ac = document.getElementById('titleAutocomplete');
+  if (ac) { ac.classList.remove('open'); ac.innerHTML = ''; }
   document.getElementById('formTitle').textContent = 'New Entry';
 }
 
@@ -1721,10 +1798,182 @@ async function lookupDvd(code) {
   return { title, artist: '', genre: '', coverUrl };
 }
 
+// ---------- Title autocomplete ----------
+// When user types in the Title field, search the relevant API for matches
+// and show a dropdown to pick from. Picking applies title + cover + metadata.
+const titleAcEl = document.getElementById('titleAutocomplete');
+let titleAcTimer = null;
+let titleAcSeq = 0; // monotonic counter to ignore stale responses
+
+fld.title.addEventListener('input', () => {
+  const q = fld.title.value.trim();
+  clearTimeout(titleAcTimer);
+  if (q.length < 3) {
+    hideTitleAutocomplete();
+    return;
+  }
+  titleAcTimer = setTimeout(() => runTitleSearch(q), 350);
+});
+
+// Hide the dropdown when the field loses focus, but delay so taps on results register.
+fld.title.addEventListener('blur', () => {
+  setTimeout(hideTitleAutocomplete, 200);
+});
+fld.title.addEventListener('focus', () => {
+  const q = fld.title.value.trim();
+  if (q.length >= 3) runTitleSearch(q);
+});
+
+function hideTitleAutocomplete() {
+  titleAcEl.classList.remove('open');
+  titleAcEl.innerHTML = '';
+}
+
+function showTitleStatus(msg) {
+  titleAcEl.innerHTML = `<div class="autocomplete-status">${escapeHtml(msg)}</div>`;
+  titleAcEl.classList.add('open');
+}
+
+async function runTitleSearch(q) {
+  const mySeq = ++titleAcSeq;
+  showTitleStatus('Searching...');
+  try {
+    let results = [];
+    if (state.formType === 'vinyl') {
+      results = await searchDiscogsByTitle(q);
+    } else {
+      results = await searchTmdbByTitle(q);
+    }
+    // Ignore stale responses from earlier keystrokes.
+    if (mySeq !== titleAcSeq) return;
+    if (!results.length) {
+      showTitleStatus('No matches found');
+      return;
+    }
+    renderTitleResults(results);
+  } catch (err) {
+    if (mySeq !== titleAcSeq) return;
+    showTitleStatus('Search failed: ' + (err.message || 'unknown error'));
+  }
+}
+
+function renderTitleResults(results) {
+  titleAcEl.innerHTML = '';
+  for (const r of results) {
+    const item = document.createElement('div');
+    item.className = 'autocomplete-item';
+    const thumb = r.thumbUrl
+      ? `<img class="autocomplete-thumb" src="${r.thumbUrl}" alt="">`
+      : `<div class="autocomplete-thumb">${state.formType === 'vinyl' ? '◉' : '▣'}</div>`;
+    item.innerHTML = `
+      ${thumb}
+      <div class="autocomplete-text">
+        <div class="autocomplete-title">${escapeHtml(r.title)}</div>
+        <div class="autocomplete-sub">${escapeHtml(r.sub || '')}</div>
+      </div>
+    `;
+    item.addEventListener('mousedown', (e) => {
+      // mousedown fires before blur, so this catches the tap before the field loses focus.
+      e.preventDefault();
+    });
+    item.addEventListener('click', async () => {
+      hideTitleAutocomplete();
+      await applyTitleSearchPick(r);
+    });
+    titleAcEl.appendChild(item);
+  }
+  titleAcEl.classList.add('open');
+}
+
+async function applyTitleSearchPick(r) {
+  fld.title.value = r.title || fld.title.value;
+  if (r.artist && !fld.artist.value) fld.artist.value = r.artist;
+  if (r.genre && !fld.genre.value) fld.genre.value = r.genre;
+  if (r.coverUrl && !state.formImages.cover) {
+    showToast('Fetching cover...');
+    const dataUrl = await urlToCompressedDataURL(r.coverUrl);
+    if (dataUrl) {
+      state.formImages.cover = dataUrl;
+      refreshImageSlot('cover');
+    }
+  }
+  showToast('Filled from search', 'success');
+}
+
+// --- TMDB (movies) ---
+async function searchTmdbByTitle(q) {
+  const token = localStorage.getItem('tmdb_token');
+  if (!token) {
+    throw new Error('Add a TMDB API key in Settings to enable DVD title search');
+  }
+  const url = `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(token)}&query=${encodeURIComponent(q)}&include_adult=false`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    if (resp.status === 401) throw new Error('Invalid TMDB API key');
+    throw new Error('TMDB ' + resp.status);
+  }
+  const data = await resp.json();
+  if (!data.results || !data.results.length) return [];
+  // Map first 6 results to common shape.
+  return data.results.slice(0, 6).map(m => {
+    const year = m.release_date ? m.release_date.slice(0, 4) : '';
+    const posterPath = m.poster_path
+      ? `https://image.tmdb.org/t/p/w185${m.poster_path}`
+      : null;
+    const fullPosterPath = m.poster_path
+      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+      : null;
+    return {
+      title: m.title,
+      sub: [year, m.original_language ? m.original_language.toUpperCase() : ''].filter(Boolean).join(' · '),
+      thumbUrl: posterPath,
+      coverUrl: fullPosterPath,
+      // Genre comes from a separate genre_ids -> needs a name lookup; skip for autocomplete speed.
+      genre: '',
+      artist: '',
+      tmdbId: m.id,
+    };
+  });
+}
+
+// --- Discogs (vinyl) by title ---
+async function searchDiscogsByTitle(q) {
+  const token = localStorage.getItem('discogs_token');
+  if (!token) {
+    throw new Error('Add a Discogs token in Settings to enable vinyl title search');
+  }
+  const url = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&format=Vinyl&token=${encodeURIComponent(token)}`;
+  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/1.0' } });
+  if (!resp.ok) throw new Error('Discogs ' + resp.status);
+  const data = await resp.json();
+  if (!data.results || !data.results.length) return [];
+  return data.results.slice(0, 6).map(r => {
+    // Discogs returns titles like "Artist - Album"; split when possible.
+    let title = r.title || '';
+    let artist = '';
+    if (title.includes(' - ')) {
+      const parts = title.split(' - ');
+      artist = parts[0].trim();
+      title = parts.slice(1).join(' - ').trim();
+    }
+    const year = r.year || '';
+    const format = (r.format && r.format[0]) || '';
+    return {
+      title,
+      artist,
+      sub: [artist, year, format].filter(Boolean).join(' · '),
+      thumbUrl: r.thumb || r.cover_image || null,
+      coverUrl: r.cover_image || r.thumb || null,
+      genre: (r.genre && r.genre[0]) || (r.style && r.style[0]) || '',
+    };
+  });
+}
+
 // ---------- Settings: Discogs token ----------
 const settingsBtn = document.getElementById('settingsBtn');
 settingsBtn.addEventListener('click', () => {
   document.getElementById('discogsToken').value = localStorage.getItem('discogs_token') || '';
+  document.getElementById('tmdbToken').value = localStorage.getItem('tmdb_token') || '';
   openModal('settingsModal');
 });
 document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
@@ -1734,6 +1983,12 @@ document.getElementById('saveTokenBtn').addEventListener('click', () => {
   if (v) localStorage.setItem('discogs_token', v);
   else localStorage.removeItem('discogs_token');
   showToast('Token saved', 'success');
+});
+document.getElementById('saveTmdbBtn').addEventListener('click', () => {
+  const v = document.getElementById('tmdbToken').value.trim();
+  if (v) localStorage.setItem('tmdb_token', v);
+  else localStorage.removeItem('tmdb_token');
+  showToast('TMDB key saved', 'success');
 });
 
 // ---------- Export ----------
