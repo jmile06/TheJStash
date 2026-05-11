@@ -916,6 +916,15 @@
           </div>
         </li>
         <li class="settings-item">
+          <h4>Auto Backup to Folder</h4>
+          <p>Pick a folder once. The app will silently overwrite <strong>the_j_stash.json</strong> there on every save, edit, or delete. Tip: pick a folder synced by Google Drive for free cloud backup.</p>
+          <p id="backupFolderStatus" style="margin-top:6px; font-size:12px; color:var(--text-faint);">Not set.</p>
+          <div class="settings-buttons" style="margin-top:8px;">
+            <button class="btn btn-primary" id="pickBackupBtn">Choose Folder</button>
+            <button class="btn btn-secondary" id="clearBackupBtn" style="display:none;">Disable</button>
+          </div>
+        </li>
+        <li class="settings-item">
           <h4>Export Backup</h4>
           <p>Saves files to your Downloads folder.</p>
           <div class="settings-buttons">
@@ -981,8 +990,9 @@
 
 // ---------- IndexedDB wrapper ----------
 const DB_NAME = 'stacks_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // bumped from 1 to add 'meta' store for backup handle
 const STORE = 'items';
+const META_STORE = 'meta';
 let dbPromise = null;
 
 function openDB() {
@@ -996,11 +1006,45 @@ function openDB() {
         store.createIndex('type', 'type', { unique: false });
         store.createIndex('addedAt', 'addedAt', { unique: false });
       }
+      if (!db.objectStoreNames.contains(META_STORE)) {
+        // Stores singletons keyed by string. Used to persist the auto-backup
+        // directory handle, which is a real FileSystemDirectoryHandle object
+        // that IndexedDB knows how to structured-clone.
+        db.createObjectStore(META_STORE);
+      }
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
   return dbPromise;
+}
+
+async function metaGet(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(META_STORE, 'readonly');
+    const req = tx.objectStore(META_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function metaSet(key, value) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(META_STORE, 'readwrite');
+    tx.objectStore(META_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function metaDelete(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(META_STORE, 'readwrite');
+    tx.objectStore(META_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
 async function dbGetAll() {
@@ -1483,6 +1527,8 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   if (idx >= 0) state.items[idx] = item; else state.items.push(item);
   closeModal(formModal);
   renderAll();
+  updatePeakCount();
+  scheduleAutoBackup();
   showToast(state.editingId ? 'Entry updated' : 'Entry saved', 'success');
   state.editingId = null;
 });
@@ -1536,6 +1582,8 @@ function openDetail(id) {
     state.items = state.items.filter(x => x.id !== it.id);
     closeModal('detailModal');
     renderAll();
+    updatePeakCount();
+    scheduleAutoBackup();
     showToast('Deleted', 'success');
   });
   openModal('detailModal');
@@ -1974,6 +2022,7 @@ const settingsBtn = document.getElementById('settingsBtn');
 settingsBtn.addEventListener('click', () => {
   document.getElementById('discogsToken').value = localStorage.getItem('discogs_token') || '';
   document.getElementById('tmdbToken').value = localStorage.getItem('tmdb_token') || '';
+  refreshBackupSettingsUI();
   openModal('settingsModal');
 });
 document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
@@ -1990,6 +2039,8 @@ document.getElementById('saveTmdbBtn').addEventListener('click', () => {
   else localStorage.removeItem('tmdb_token');
   showToast('TMDB key saved', 'success');
 });
+document.getElementById('pickBackupBtn').addEventListener('click', pickBackupFolder);
+document.getElementById('clearBackupBtn').addEventListener('click', clearBackupFolder);
 
 // ---------- Export ----------
 function downloadBlob(blob, filename) {
@@ -2196,6 +2247,126 @@ function buildZip(files) {
   return out;
 }
 
+// ---------- Auto-backup to a chosen folder (File System Access API) ----------
+// User picks a folder once. App stores the directory handle in IndexedDB and
+// silently writes 'the_j_stash.json' there on every save/edit/delete.
+// If the user picks a folder synced by Google Drive / OneDrive / Dropbox,
+// they also get free cloud backup.
+
+const BACKUP_FILENAME = 'the_j_stash.json';
+let backupDirHandle = null; // FileSystemDirectoryHandle, hydrated on boot
+let backupWriteTimer = null;
+
+async function loadBackupHandle() {
+  try {
+    backupDirHandle = await metaGet('backup_dir');
+  } catch {
+    backupDirHandle = null;
+  }
+  refreshBackupSettingsUI();
+}
+
+async function pickBackupFolder() {
+  if (!('showDirectoryPicker' in window)) {
+    alert('Your browser does not support the folder picker. Use Chrome or Brave on Android, or the manual Export Backup buttons in Settings instead.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({
+      id: 'jstash-backup',
+      mode: 'readwrite',
+      startIn: 'documents',
+    });
+    // Confirm we have readwrite permission. Some pickers default to read.
+    const perm = await ensureRWPermission(handle);
+    if (!perm) {
+      showToast('Write permission denied for that folder', 'error');
+      return;
+    }
+    backupDirHandle = handle;
+    await metaSet('backup_dir', handle);
+    refreshBackupSettingsUI();
+    showToast(`Auto-backup folder set: ${handle.name}`, 'success');
+    // Do an immediate write so the user sees the file appear.
+    await writeBackup();
+  } catch (err) {
+    // AbortError = user closed picker without choosing; not an error to report.
+    if (err && err.name !== 'AbortError') {
+      showToast('Could not open folder: ' + err.message, 'error');
+    }
+  }
+}
+
+async function clearBackupFolder() {
+  if (!confirm('Stop auto-backing up to this folder? Your existing backup file will be left in place.')) return;
+  backupDirHandle = null;
+  await metaDelete('backup_dir');
+  refreshBackupSettingsUI();
+  showToast('Auto-backup disabled', 'success');
+}
+
+async function ensureRWPermission(handle) {
+  if (!handle || !handle.queryPermission) return true; // older API, assume ok
+  const opts = { mode: 'readwrite' };
+  let state = await handle.queryPermission(opts);
+  if (state === 'granted') return true;
+  state = await handle.requestPermission(opts);
+  return state === 'granted';
+}
+
+// Schedule a backup write, debounced so rapid edits coalesce into one write.
+function scheduleAutoBackup() {
+  if (!backupDirHandle) return;
+  clearTimeout(backupWriteTimer);
+  backupWriteTimer = setTimeout(() => {
+    writeBackup().catch(err => {
+      console.warn('Auto-backup write failed:', err);
+    });
+  }, 1500);
+}
+
+async function writeBackup() {
+  if (!backupDirHandle) return;
+  // Permission can be silently revoked between sessions. Check before writing.
+  const ok = await ensureRWPermission(backupDirHandle);
+  if (!ok) {
+    showToast('Auto-backup permission was revoked. Re-select the folder in Settings.', 'error');
+    return;
+  }
+  const payload = {
+    app: 'the_j_stash',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: state.items,
+  };
+  const json = JSON.stringify(payload, null, 2);
+  try {
+    const fileHandle = await backupDirHandle.getFileHandle(BACKUP_FILENAME, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(json);
+    await writable.close();
+    // Quiet success — no toast, this runs on every change and would spam.
+  } catch (err) {
+    showToast('Auto-backup failed: ' + (err.message || 'unknown'), 'error');
+  }
+}
+
+function refreshBackupSettingsUI() {
+  const status = document.getElementById('backupFolderStatus');
+  const pickBtn = document.getElementById('pickBackupBtn');
+  const clearBtn = document.getElementById('clearBackupBtn');
+  if (!status) return;
+  if (backupDirHandle) {
+    status.textContent = `Currently backing up to: ${backupDirHandle.name}/${BACKUP_FILENAME}`;
+    if (pickBtn) pickBtn.textContent = 'Change Folder';
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    status.textContent = 'Not set. Pick a folder to enable automatic backups on every save.';
+    if (pickBtn) pickBtn.textContent = 'Choose Folder';
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
 // ---------- Import ----------
 document.getElementById('importBtn').addEventListener('click', () => {
   document.getElementById('importFile').click();
@@ -2220,6 +2391,8 @@ document.getElementById('importFile').addEventListener('change', async (e) => {
     }
     state.items = await dbGetAll();
     renderAll();
+    updatePeakCount();
+    scheduleAutoBackup();
     showToast(`Imported ${data.items.length} entries`, 'success');
   } catch (err) {
     showToast('Import failed: ' + err.message, 'error');
@@ -2233,6 +2406,8 @@ document.getElementById('eraseBtn').addEventListener('click', async () => {
   await dbClear();
   state.items = [];
   renderAll();
+  try { localStorage.setItem('jstash_peak_count', '0'); } catch {}
+  scheduleAutoBackup();
   showToast('All data erased', 'success');
 });
 
@@ -2244,33 +2419,59 @@ document.getElementById('eraseBtn').addEventListener('click', async () => {
     showToast('Storage error: ' + err.message, 'error');
   }
   renderAll();
+  checkForDataLoss();
+  await loadBackupHandle();
 })();
 
-// Register a tiny inline service worker for offline cache (optional, best-effort)
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    const C = 'stacks-v1';
-    self.addEventListener('install', e => self.skipWaiting());
-    self.addEventListener('activate', e => self.clients.claim());
-    self.addEventListener('fetch', e => {
-      const req = e.request;
-      if (req.method !== 'GET') return;
-      e.respondWith(
-        caches.open(C).then(cache =>
-          cache.match(req).then(hit => {
-            const fetcher = fetch(req).then(resp => {
-              try { cache.put(req, resp.clone()); } catch {}
-              return resp;
-            }).catch(() => hit);
-            return hit || fetcher;
-          })
-        )
-      );
-    });
-  `;
-  const blob = new Blob([swCode], { type: 'application/javascript' });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
+// Track the highest item count we've ever seen. If we boot up with fewer
+// items than last time WITHOUT the user having deleted them in this session,
+// warn them so they can restore from backup before adding new entries on top
+// of a partial library.
+function checkForDataLoss() {
+  try {
+    const prevPeak = parseInt(localStorage.getItem('jstash_peak_count') || '0', 10);
+    const now = state.items.length;
+    if (prevPeak > 0 && now < prevPeak - 1) {
+      // Allow a 1-item tolerance for in-flight deletes. Otherwise this is suspicious.
+      setTimeout(() => {
+        const msg = `Heads up: your library has ${now} entries but previously had ${prevPeak}. ` +
+                    `If you didn't delete entries, your browser may have cleared storage. ` +
+                    `You can restore from a JSON backup via Settings > Import JSON.`;
+        alert(msg);
+      }, 600);
+    }
+    // Always update the peak to the higher of (current, prevPeak).
+    const newPeak = Math.max(prevPeak, now);
+    localStorage.setItem('jstash_peak_count', String(newPeak));
+  } catch {}
+}
+
+// Update peak after every save or delete so the sentinel stays accurate.
+function updatePeakCount() {
+  try {
+    const cur = state.items.length;
+    const prev = parseInt(localStorage.getItem('jstash_peak_count') || '0', 10);
+    if (cur > prev) localStorage.setItem('jstash_peak_count', String(cur));
+    if (cur < prev) localStorage.setItem('jstash_peak_count', String(cur));
+  } catch {}
+}
+
+// Note: an earlier version of this app registered a service worker from a
+// dynamically-generated blob: URL for offline caching. That caused issues:
+// every page load created a new SW URL, and some browsers (notably Brave)
+// would clear storage associated with "abandoned" service worker scopes,
+// wiping the user's library and API keys on every deploy. Service worker
+// registration has been removed. Offline support can be added back later
+// from a real file like /sw.js if needed.
+//
+// Clean up any prior service worker registrations from earlier versions so
+// they can't continue to fight with current storage. Safe no-op if none exist.
+if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    for (const reg of regs) {
+      reg.unregister().catch(() => {});
+    }
+  }).catch(() => {});
 }
 </script>
 </body>
