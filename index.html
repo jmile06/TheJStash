@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>The J Stash — Vinyl & DVD Catalog</title>
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22The%20J%20Stash%22%2C%22short_name%22%3A%22J%20Stash%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f0f10%22%2C%22theme_color%22%3A%22%230f0f10%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzBmMGYxMCIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjY0IiBmaWxsPSIjZTI4MjEzIi8%2BPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iMTYiIGZpbGw9IiMwZjBmMTAiLz48L3N2Zz4%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f10;
+    --bg-elev: #1a1a1c;
+    --bg-elev-2: #232326;
+    --border: #2a2a2e;
+    --text: #ececec;
+    --text-dim: #9a9a9e;
+    --text-faint: #5a5a5e;
+    --accent: #e28213;
+    --accent-dim: #c46b08;
+    --danger: #d04a3d;
+    --success: #3da66e;
+    --radius: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .brand span { color: var(--accent); }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .icon-btn {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .icon-btn:active { transform: scale(0.95); background: var(--bg-elev-2); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 65px;
+    z-index: 40;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab .count {
+    display: inline-block;
+    margin-left: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+  .tab.active .count { color: var(--accent-dim); }
+
+  /* Search & Sort bar */
+  .toolbar {
+    padding: 12px 16px;
+    background: var(--bg);
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-input {
+    flex: 1;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-faint); }
+
+  .sort-btn {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0 12px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .sort-btn:active { background: var(--bg-elev-2); }
+
+  /* Main content */
+  main {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  .empty p { margin: 0; font-size: 14px; }
+
+  /* Item grid */
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (min-width: 640px) {
+    .item-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 900px) {
+    .item-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.15s;
+  }
+  .card:active { transform: scale(0.98); }
+
+  .card-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--bg-elev-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .card-cover img { width: 100%; height: 100%; object-fit: cover; }
+  .card-cover .placeholder {
+    color: var(--text-faint);
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+  }
+  .card-type-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(15,15,16,0.85);
+    backdrop-filter: blur(4px);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .card-body { padding: 10px 12px; }
+  .card-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 0 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    box-shadow: 0 6px 20px rgba(226,130,19,0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    transition: transform 0.1s;
+  }
+  .fab:active { transform: scale(0.92); }
+  .fab svg { width: 26px; height: 26px; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+    animation: slideUp 0.25s ease-out;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 1;
+  }
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .modal-body { padding: 20px; }
+
+  /* Form */
+  .field { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .field-label .req { color: var(--accent); }
+  .field-input,
+  .field-textarea,
+  .field-select {
+    width: 100%;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  .field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--accent); }
+  .field-textarea { resize: vertical; min-height: 70px; }
+
+  .type-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .type-toggle button {
+    flex: 1;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 12px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .type-toggle button.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* Image picker */
+  .image-picker {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .image-slot {
+    aspect-ratio: 1;
+    background: var(--bg-elev);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-direction: column;
+    color: var(--text-faint);
+    font-size: 12px;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .image-slot img { width: 100%; height: 100%; object-fit: cover; }
+  .image-slot .slot-label {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    right: 4px;
+    background: rgba(15,15,16,0.85);
+    color: var(--text);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .image-slot svg { width: 26px; height: 26px; margin-bottom: 4px; }
+
+  .image-actions {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    gap: 4px;
+  }
+  .image-action-btn {
+    background: rgba(15,15,16,0.85);
+    color: var(--text);
+    border: none;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .image-action-btn svg { width: 12px; height: 12px; margin: 0; }
+
+  /* Barcode row */
+  .barcode-row {
+    display: flex;
+    gap: 8px;
+  }
+  .barcode-row .field-input { flex: 1; }
+  .barcode-btn {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .barcode-btn:active { background: var(--bg-elev-2); }
+  .barcode-btn svg { width: 16px; height: 16px; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-secondary { background: var(--bg-elev); color: var(--text); border-color: var(--border); }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn:active { transform: scale(0.98); }
+
+  /* Detail view */
+  .detail-cover {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 1;
+    margin: 0 auto 20px;
+    background: var(--bg-elev);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .detail-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+  .detail-secondary-img {
+    width: 100%;
+    max-width: 240px;
+    aspect-ratio: 1;
+    margin: 0 auto 20px;
+    background: var(--bg-elev);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .detail-secondary-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  .detail-title {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    line-height: 1.2;
+  }
+  .detail-artist {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin: 0 0 16px;
+  }
+  .detail-meta {
+    display: grid;
+    gap: 12px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 14px;
+  }
+  .meta-row .meta-label {
+    color: var(--text-dim);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .meta-row .meta-value {
+    text-align: right;
+    word-break: break-word;
+  }
+  .note-block {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    z-index: 200;
+    box-shadow: var(--shadow);
+    animation: toastIn 0.2s;
+    max-width: 90vw;
+  }
+  .toast.success { border-color: var(--success); }
+  .toast.error { border-color: var(--danger); }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* Sort menu */
+  .sort-menu {
+    background: var(--bg-elev);
+    border-radius: var(--radius);
+    padding: 4px;
+    width: 100%;
+  }
+  .sort-option {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 12px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sort-option:active { background: var(--bg-elev-2); }
+  .sort-option .check { color: var(--accent); }
+
+  /* Scanner */
+  #scannerVideo {
+    width: 100%;
+    max-height: 60vh;
+    border-radius: var(--radius);
+    background: black;
+  }
+  .scanner-info {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    margin: 12px 0;
+  }
+
+  /* Settings list */
+  .settings-list { list-style: none; padding: 0; margin: 0; }
+  .settings-item {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .settings-item h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .settings-item p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .settings-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .settings-buttons .btn { flex: 0 1 auto; padding: 8px 14px; font-size: 13px; }
+
+  .hidden-input { display: none; }
+
+  /* Spinner */
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">the j stash<span>.</span></div>
+  <div class="header-actions">
+    <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="all">All <span class="count" id="countAll">0</span></button>
+  <button class="tab" data-tab="dvd">DVDs <span class="count" id="countDvd">0</span></button>
+  <button class="tab" data-tab="vinyl">Vinyl <span class="count" id="countVinyl">0</span></button>
+</nav>
+
+<div class="toolbar">
+  <input type="search" class="search-input" id="searchInput" placeholder="Search title, artist, genre, barcode, notes...">
+  <button class="sort-btn" id="sortBtn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 6h18M6 12h12M10 18h4"/>
+    </svg>
+    Sort
+  </button>
+</div>
+
+<main id="mainContent">
+  <div class="empty">
+    <h3>No entries yet</h3>
+    <p>Tap the + button to add your first record or DVD.</p>
+  </div>
+</main>
+
+<button class="fab" id="addBtn" aria-label="Add new entry">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+</button>
+
+<!-- Add/Edit Modal -->
+<div class="modal-backdrop" id="formModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="formTitle">New Entry</h2>
+      <button class="icon-btn" id="closeForm" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="type-toggle">
+        <button id="typeDvd" data-type="dvd" class="active">DVD</button>
+        <button id="typeVinyl" data-type="vinyl">Vinyl</button>
+      </div>
+
+      <div class="image-picker">
+        <div class="image-slot" id="coverSlot" data-slot="cover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <span>Cover</span>
+          <span class="slot-label">Cover</span>
+        </div>
+        <div class="image-slot" id="secondarySlot" data-slot="secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span id="secondaryLabel">Disc (optional)</span>
+          <span class="slot-label" id="secondarySlotLabel">Disc</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Barcode</label>
+        <div class="barcode-row">
+          <input type="text" class="field-input" id="fldBarcode" inputmode="numeric" placeholder="Type or scan">
+          <button class="barcode-btn" id="scanBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
+            </svg>
+            Scan
+          </button>
+          <button class="barcode-btn" id="lookupBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <span id="lookupBtnLabel">Lookup</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" id="titleLabel">Title <span class="req">*</span></label>
+        <input type="text" class="field-input" id="fldTitle" required>
+      </div>
+
+      <div class="field" id="artistField" style="display:none;">
+        <label class="field-label">Artist <span class="req">*</span></label>
+        <input type="text" class="field-input" id="fldArtist">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Genre</label>
+        <input type="text" class="field-input" id="fldGenre" placeholder="e.g. Jazz, Action, Comedy">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Note</label>
+        <textarea class="field-textarea" id="fldNote" placeholder="Edition, condition, where you bought it..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="cancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Details</h2>
+      <button class="icon-btn" id="closeDetail" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- Sort Modal -->
+<div class="modal-backdrop" id="sortModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Sort by</h2>
+      <button class="icon-btn" id="closeSort" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="sort-menu" id="sortMenu"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Settings</h2>
+      <button class="icon-btn" id="closeSettings" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <ul class="settings-list">
+        <li class="settings-item">
+          <h4>Discogs API Token</h4>
+          <p>Required for vinyl barcode lookups. Get a free token at discogs.com/settings/developers.</p>
+          <input type="text" class="field-input" id="discogsToken" placeholder="Paste token here">
+          <div class="settings-buttons" style="margin-top:8px;">
+            <button class="btn btn-primary" id="saveTokenBtn">Save Token</button>
+          </div>
+        </li>
+        <li class="settings-item">
+          <h4>Export Backup</h4>
+          <p>Saves files to your Downloads folder.</p>
+          <div class="settings-buttons">
+            <button class="btn btn-secondary" id="exportJsonBtn">JSON</button>
+            <button class="btn btn-secondary" id="exportCsvBtn">CSV</button>
+            <button class="btn btn-primary" id="exportZipBtn">Full Backup (ZIP)</button>
+          </div>
+        </li>
+        <li class="settings-item">
+          <h4>Import Backup</h4>
+          <p>Restore from a JSON backup. Existing entries with the same ID are replaced.</p>
+          <div class="settings-buttons">
+            <button class="btn btn-secondary" id="importBtn">Import JSON</button>
+            <input type="file" id="importFile" accept="application/json,application/zip" class="hidden-input">
+          </div>
+        </li>
+        <li class="settings-item">
+          <h4>Erase All Data</h4>
+          <p>Permanently deletes every entry in your local database. This cannot be undone.</p>
+          <div class="settings-buttons">
+            <button class="btn btn-danger" id="eraseBtn">Erase Everything</button>
+          </div>
+        </li>
+        <li class="settings-item">
+          <h4>About</h4>
+          <p>The J Stash runs entirely on your device. No accounts, no servers. Your data lives in browser storage; backups are in your control. Add to home screen for full app experience.</p>
+        </li>
+      </ul>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="settingsDoneBtn" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scanner Modal -->
+<div class="modal-backdrop" id="scannerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Scan Barcode</h2>
+      <button class="icon-btn" id="closeScanner" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <video id="scannerVideo" autoplay muted playsinline></video>
+      <p class="scanner-info" id="scannerInfo">Point camera at barcode</p>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden image inputs -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden-input">
+<input type="file" id="galleryInput" accept="image/*" class="hidden-input">
+
+<script>
+/* ==========================================================
+   STACKS — Vinyl & DVD Catalog (PWA)
+   Single-file app. All data is local (IndexedDB).
+   ========================================================== */
+
+// ---------- IndexedDB wrapper ----------
+const DB_NAME = 'stacks_db';
+const DB_VERSION = 1;
+const STORE = 'items';
+let dbPromise = null;
+
+function openDB() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        const store = db.createObjectStore(STORE, { keyPath: 'id' });
+        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('addedAt', 'addedAt', { unique: false });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return dbPromise;
+}
+
+async function dbGetAll() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbPut(item) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbDelete(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbClear() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// ---------- Utilities ----------
+function uid() {
+  return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
+function showToast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// Compress an image File to a JPEG dataURL, max width preserving aspect.
+function compressImage(file, maxDim = 1000, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width >= height) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Fetch image URL and convert to compressed dataURL (for online lookup covers).
+async function urlToCompressedDataURL(url, maxDim = 1000, quality = 0.85) {
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('fetch failed');
+    const blob = await resp.blob();
+    const file = new File([blob], 'cover.jpg', { type: blob.type || 'image/jpeg' });
+    return await compressImage(file, maxDim, quality);
+  } catch (e) {
+    return null;
+  }
+}
+
+// ---------- Application state ----------
+const state = {
+  items: [],
+  tab: 'all',
+  search: '',
+  sortKey: 'addedAt',
+  sortDir: 'desc',
+  editingId: null,
+  formType: 'dvd',
+  formImages: { cover: null, secondary: null }, // dataURLs
+  imageTarget: null, // 'cover' | 'secondary'
+  scannerActive: false,
+  scannerStream: null,
+  scannerDetector: null,
+  scannerLoop: null,
+};
+
+// ---------- Render ----------
+function getFiltered() {
+  let list = state.items;
+  if (state.tab === 'dvd') list = list.filter(i => i.type === 'dvd');
+  if (state.tab === 'vinyl') list = list.filter(i => i.type === 'vinyl');
+
+  const q = state.search.trim().toLowerCase();
+  if (q) {
+    list = list.filter(i => {
+      const fields = [i.title, i.artist, i.genre, i.barcode, i.note, i.type];
+      return fields.some(f => f && String(f).toLowerCase().includes(q));
+    });
+  }
+
+  const dir = state.sortDir === 'asc' ? 1 : -1;
+  const key = state.sortKey;
+  list = [...list].sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if (key === 'addedAt') { av = av || 0; bv = bv || 0; return (av - bv) * dir; }
+    av = (av || '').toString().toLowerCase();
+    bv = (bv || '').toString().toLowerCase();
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+
+  return list;
+}
+
+function renderCounts() {
+  const dvds = state.items.filter(i => i.type === 'dvd').length;
+  const vinyls = state.items.filter(i => i.type === 'vinyl').length;
+  document.getElementById('countAll').textContent = state.items.length;
+  document.getElementById('countDvd').textContent = dvds;
+  document.getElementById('countVinyl').textContent = vinyls;
+}
+
+function renderList() {
+  const main = document.getElementById('mainContent');
+  const items = getFiltered();
+  if (items.length === 0) {
+    main.innerHTML = `
+      <div class="empty">
+        <h3>${state.search ? 'No matches' : 'Nothing here yet'}</h3>
+        <p>${state.search ? 'Try a different search.' : 'Tap the + button to add your first entry.'}</p>
+      </div>`;
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'item-grid';
+  for (const it of items) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = it.id;
+    const cover = it.cover
+      ? `<img src="${it.cover}" alt="" loading="lazy">`
+      : `<span class="placeholder">${it.type === 'vinyl' ? '◉' : '▣'}</span>`;
+    const sub = it.type === 'vinyl'
+      ? escapeHtml(it.artist || '—')
+      : (it.genre ? escapeHtml(it.genre) : 'DVD');
+    card.innerHTML = `
+      <div class="card-cover">
+        ${cover}
+        <span class="card-type-badge">${it.type === 'vinyl' ? 'LP' : 'DVD'}</span>
+      </div>
+      <div class="card-body">
+        <p class="card-title">${escapeHtml(it.title || 'Untitled')}</p>
+        <p class="card-sub">${sub}</p>
+      </div>`;
+    card.addEventListener('click', () => openDetail(it.id));
+    grid.appendChild(card);
+  }
+  main.innerHTML = '';
+  main.appendChild(grid);
+}
+
+function renderAll() {
+  renderCounts();
+  renderList();
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.tab = btn.dataset.tab;
+    renderList();
+  });
+});
+
+// ---------- Search ----------
+const searchInput = document.getElementById('searchInput');
+let searchTimer = null;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.search = searchInput.value;
+    renderList();
+  }, 120);
+});
+
+// ---------- Sort ----------
+const SORT_OPTIONS = [
+  { key: 'addedAt', label: 'Date added', dir: 'desc' },
+  { key: 'addedAt', label: 'Date added (oldest)', dir: 'asc' },
+  { key: 'title', label: 'Title (A→Z)', dir: 'asc' },
+  { key: 'title', label: 'Title (Z→A)', dir: 'desc' },
+  { key: 'artist', label: 'Artist (A→Z)', dir: 'asc' },
+  { key: 'artist', label: 'Artist (Z→A)', dir: 'desc' },
+  { key: 'genre', label: 'Genre (A→Z)', dir: 'asc' },
+  { key: 'barcode', label: 'Barcode', dir: 'asc' },
+  { key: 'type', label: 'Type', dir: 'asc' },
+];
+
+function renderSortMenu() {
+  const menu = document.getElementById('sortMenu');
+  menu.innerHTML = '';
+  for (const opt of SORT_OPTIONS) {
+    const btn = document.createElement('button');
+    btn.className = 'sort-option';
+    const active = state.sortKey === opt.key && state.sortDir === opt.dir;
+    btn.innerHTML = `<span>${opt.label}</span>${active ? '<span class="check">●</span>' : ''}`;
+    btn.addEventListener('click', () => {
+      state.sortKey = opt.key;
+      state.sortDir = opt.dir;
+      closeModal('sortModal');
+      renderList();
+    });
+    menu.appendChild(btn);
+  }
+}
+
+document.getElementById('sortBtn').addEventListener('click', () => {
+  renderSortMenu();
+  openModal('sortModal');
+});
+document.getElementById('closeSort').addEventListener('click', () => closeModal('sortModal'));
+
+// ---------- Modal helpers ----------
+// Track open modals as history entries so the Android back button closes them.
+const modalStack = [];
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+  modalStack.push(id);
+  // Push a history state so back button pops the modal instead of leaving the app.
+  history.pushState({ modal: id }, '');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.classList.contains('open')) return;
+  el.classList.remove('open');
+  // Remove the matching history entry. If we're already responding to popstate, skip.
+  const idx = modalStack.lastIndexOf(id);
+  if (idx >= 0) modalStack.splice(idx, 1);
+  if (modalStack.length === 0) document.body.style.overflow = '';
+  // If this close was user-initiated (not a back button event), step history back.
+  if (!closeModal._fromPop) {
+    try { history.back(); } catch {}
+  }
+}
+
+// When user hits Android back, close the topmost modal instead of leaving.
+window.addEventListener('popstate', (e) => {
+  if (modalStack.length > 0) {
+    const top = modalStack[modalStack.length - 1];
+    closeModal._fromPop = true;
+    closeModal(top);
+    closeModal._fromPop = false;
+  }
+});
+
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => {
+    if (e.target === bd) closeModal(bd.id);
+  });
+});
+
+// ---------- Form ----------
+const formModal = 'formModal';
+const fld = {
+  title: document.getElementById('fldTitle'),
+  artist: document.getElementById('fldArtist'),
+  genre: document.getElementById('fldGenre'),
+  barcode: document.getElementById('fldBarcode'),
+  note: document.getElementById('fldNote'),
+};
+
+function setFormType(type) {
+  state.formType = type;
+  document.getElementById('typeDvd').classList.toggle('active', type === 'dvd');
+  document.getElementById('typeVinyl').classList.toggle('active', type === 'vinyl');
+  document.getElementById('artistField').style.display = type === 'vinyl' ? '' : 'none';
+  // Re-render the secondary slot so its label reflects the new type.
+  refreshImageSlot('secondary');
+}
+document.getElementById('typeDvd').addEventListener('click', () => setFormType('dvd'));
+document.getElementById('typeVinyl').addEventListener('click', () => setFormType('vinyl'));
+
+function clearForm() {
+  state.editingId = null;
+  state.formImages = { cover: null, secondary: null };
+  fld.title.value = '';
+  fld.artist.value = '';
+  fld.genre.value = '';
+  fld.barcode.value = '';
+  fld.note.value = '';
+  setFormType('dvd');
+  refreshImageSlot('cover');
+  refreshImageSlot('secondary');
+  document.getElementById('formTitle').textContent = 'New Entry';
+}
+
+function loadFormFromItem(item) {
+  state.editingId = item.id;
+  state.formImages = { cover: item.cover || null, secondary: item.secondary || null };
+  fld.title.value = item.title || '';
+  fld.artist.value = item.artist || '';
+  fld.genre.value = item.genre || '';
+  fld.barcode.value = item.barcode || '';
+  fld.note.value = item.note || '';
+  setFormType(item.type);
+  refreshImageSlot('cover');
+  refreshImageSlot('secondary');
+  document.getElementById('formTitle').textContent = 'Edit Entry';
+}
+
+function refreshImageSlot(slot) {
+  const el = document.getElementById(slot === 'cover' ? 'coverSlot' : 'secondarySlot');
+  // Replace the node to drop any previously attached listeners.
+  const fresh = el.cloneNode(false);
+  el.parentNode.replaceChild(fresh, el);
+
+  const img = state.formImages[slot];
+  if (img) {
+    fresh.innerHTML = `
+      <img src="${img}" alt="">
+      <div class="image-actions">
+        <button class="image-action-btn" data-img-action="replace" data-slot="${slot}" type="button" aria-label="Replace">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.5-6.5L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.5L3 16"/><path d="M3 21v-5h5"/></svg>
+        </button>
+        <button class="image-action-btn" data-img-action="remove" data-slot="${slot}" type="button" aria-label="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <span class="slot-label">${slot === 'cover' ? 'Cover' : (state.formType === 'vinyl' ? 'Vinyl' : 'Disc')}</span>
+    `;
+    fresh.querySelector('img').addEventListener('click', () => promptImagePick(slot));
+    fresh.querySelectorAll('[data-img-action]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        if (b.dataset.imgAction === 'remove') {
+          state.formImages[slot] = null;
+          refreshImageSlot(slot);
+        } else {
+          promptImagePick(slot);
+        }
+      });
+    });
+  } else {
+    const isVinyl = state.formType === 'vinyl';
+    const label = slot === 'cover' ? 'Cover' : (isVinyl ? 'Vinyl (optional)' : 'Disc (optional)');
+    const slotLabel = slot === 'cover' ? 'Cover' : (isVinyl ? 'Vinyl' : 'Disc');
+    if (slot === 'cover') {
+      fresh.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
+        </svg>
+        <span>${label}</span>
+        <span class="slot-label">${slotLabel}</span>`;
+    } else {
+      fresh.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>${label}</span>
+        <span class="slot-label">${slotLabel}</span>`;
+    }
+    fresh.addEventListener('click', () => promptImagePick(slot));
+  }
+}
+
+// (Slot click handlers are owned entirely by refreshImageSlot; no separate startup binding needed.)
+
+// Image source choice
+function promptImagePick(slot) {
+  state.imageTarget = slot;
+  const choice = window.prompt('Image source — type "c" for camera, "g" for gallery:', 'c');
+  if (!choice) return;
+  if (choice.trim().toLowerCase().startsWith('g')) {
+    document.getElementById('galleryInput').click();
+  } else {
+    document.getElementById('cameraInput').click();
+  }
+}
+
+document.getElementById('cameraInput').addEventListener('change', handleImageInput);
+document.getElementById('galleryInput').addEventListener('change', handleImageInput);
+
+async function handleImageInput(e) {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file || !state.imageTarget) return;
+  try {
+    showToast('Processing image...');
+    const dataUrl = await compressImage(file, 1100, 0.85);
+    state.formImages[state.imageTarget] = dataUrl;
+    refreshImageSlot(state.imageTarget);
+  } catch (err) {
+    showToast('Image error', 'error');
+  }
+}
+
+// Save / Cancel
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const title = fld.title.value.trim();
+  if (!title) { showToast('Title required', 'error'); fld.title.focus(); return; }
+  if (state.formType === 'vinyl' && !fld.artist.value.trim()) {
+    showToast('Artist required for vinyl', 'error'); fld.artist.focus(); return;
+  }
+  if (!state.formImages.cover) {
+    showToast('Cover image required', 'error'); return;
+  }
+  const now = Date.now();
+  let id = state.editingId;
+  let addedAt = now;
+  if (id) {
+    const existing = state.items.find(i => i.id === id);
+    if (existing) addedAt = existing.addedAt;
+  } else {
+    id = uid();
+  }
+  const item = {
+    id,
+    type: state.formType,
+    title,
+    artist: state.formType === 'vinyl' ? fld.artist.value.trim() : '',
+    genre: fld.genre.value.trim(),
+    barcode: fld.barcode.value.trim(),
+    note: fld.note.value.trim(),
+    cover: state.formImages.cover,
+    secondary: state.formImages.secondary || null,
+    addedAt,
+    updatedAt: now,
+  };
+  await dbPut(item);
+  // refresh state
+  const idx = state.items.findIndex(i => i.id === id);
+  if (idx >= 0) state.items[idx] = item; else state.items.push(item);
+  closeModal(formModal);
+  renderAll();
+  showToast(state.editingId ? 'Entry updated' : 'Entry saved', 'success');
+  state.editingId = null;
+});
+document.getElementById('cancelBtn').addEventListener('click', () => closeModal(formModal));
+document.getElementById('closeForm').addEventListener('click', () => closeModal(formModal));
+
+// FAB
+document.getElementById('addBtn').addEventListener('click', () => {
+  clearForm();
+  openModal(formModal);
+});
+
+// ---------- Detail view ----------
+function openDetail(id) {
+  const it = state.items.find(x => x.id === id);
+  if (!it) return;
+  const body = document.getElementById('detailBody');
+  const meta = [];
+  meta.push({ label: 'Type', value: it.type === 'vinyl' ? 'Vinyl' : 'DVD' });
+  if (it.type === 'vinyl') meta.push({ label: 'Artist', value: it.artist || '—' });
+  if (it.genre) meta.push({ label: 'Genre', value: it.genre });
+  if (it.barcode) meta.push({ label: 'Barcode', value: it.barcode });
+  meta.push({ label: 'Added', value: fmtDate(it.addedAt) });
+  if (it.updatedAt && it.updatedAt !== it.addedAt) {
+    meta.push({ label: 'Updated', value: fmtDate(it.updatedAt) });
+  }
+  body.innerHTML = `
+    <div class="detail-cover">
+      ${it.cover ? `<img src="${it.cover}" alt="">` : ''}
+    </div>
+    <h2 class="detail-title">${escapeHtml(it.title || 'Untitled')}</h2>
+    ${it.type === 'vinyl' && it.artist ? `<p class="detail-artist">${escapeHtml(it.artist)}</p>` : ''}
+    ${it.secondary ? `<div class="detail-secondary-img"><img src="${it.secondary}" alt=""></div>` : ''}
+    <div class="detail-meta">
+      ${meta.map(m => `<div class="meta-row"><span class="meta-label">${m.label}</span><span class="meta-value">${escapeHtml(m.value)}</span></div>`).join('')}
+    </div>
+    ${it.note ? `<div class="note-block">${escapeHtml(it.note)}</div>` : ''}
+    <div class="btn-row">
+      <button class="btn btn-danger" id="detailDeleteBtn">Delete</button>
+      <button class="btn btn-secondary" id="detailEditBtn">Edit</button>
+    </div>
+  `;
+  document.getElementById('detailEditBtn').addEventListener('click', () => {
+    closeModal('detailModal');
+    loadFormFromItem(it);
+    openModal(formModal);
+  });
+  document.getElementById('detailDeleteBtn').addEventListener('click', async () => {
+    if (!confirm(`Delete "${it.title}"? This cannot be undone.`)) return;
+    await dbDelete(it.id);
+    state.items = state.items.filter(x => x.id !== it.id);
+    closeModal('detailModal');
+    renderAll();
+    showToast('Deleted', 'success');
+  });
+  openModal('detailModal');
+}
+document.getElementById('closeDetail').addEventListener('click', () => closeModal('detailModal'));
+
+// ---------- Barcode scanning ----------
+const scanBtn = document.getElementById('scanBtn');
+scanBtn.addEventListener('click', startScanner);
+document.getElementById('closeScanner').addEventListener('click', stopScanner);
+
+async function startScanner() {
+  if (!('BarcodeDetector' in window)) {
+    showToast('Camera scanning not supported on this browser. Type the barcode instead.', 'error');
+    return;
+  }
+  try {
+    const supported = await BarcodeDetector.getSupportedFormats();
+    const formats = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'].filter(f => supported.includes(f));
+    state.scannerDetector = new BarcodeDetector({ formats: formats.length ? formats : supported });
+  } catch {
+    state.scannerDetector = new BarcodeDetector();
+  }
+  try {
+    state.scannerStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }, audio: false
+    });
+  } catch (err) {
+    showToast('Camera permission denied', 'error');
+    return;
+  }
+  const video = document.getElementById('scannerVideo');
+  video.srcObject = state.scannerStream;
+  await video.play();
+  openModal('scannerModal');
+  state.scannerActive = true;
+  document.getElementById('scannerInfo').textContent = 'Point camera at barcode';
+
+  state.scannerLoop = async function loop() {
+    if (!state.scannerActive) return;
+    try {
+      const codes = await state.scannerDetector.detect(video);
+      if (codes && codes.length) {
+        const code = codes[0].rawValue;
+        if (code) {
+          fld.barcode.value = code;
+          stopScanner();
+          showToast(`Scanned: ${code}`, 'success');
+          return;
+        }
+      }
+    } catch {}
+    if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
+  };
+  requestAnimationFrame(state.scannerLoop);
+}
+
+function stopScanner() {
+  state.scannerActive = false;
+  if (state.scannerStream) {
+    state.scannerStream.getTracks().forEach(t => t.stop());
+    state.scannerStream = null;
+  }
+  closeModal('scannerModal');
+}
+
+// ---------- Online lookup ----------
+document.getElementById('lookupBtn').addEventListener('click', doLookup);
+
+async function doLookup() {
+  const code = fld.barcode.value.trim();
+  if (!code) { showToast('Enter or scan a barcode first', 'error'); return; }
+
+  const lblBtn = document.getElementById('lookupBtn');
+  const lblSpan = document.getElementById('lookupBtnLabel');
+  lblBtn.disabled = true;
+  lblSpan.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    let result = null;
+    if (state.formType === 'vinyl') {
+      result = await lookupDiscogs(code);
+    } else {
+      result = await lookupDvd(code);
+    }
+    if (!result) {
+      showToast('No match found. Fill in manually.', 'error');
+      return;
+    }
+    if (result.title && !fld.title.value) fld.title.value = result.title;
+    if (result.artist && !fld.artist.value) fld.artist.value = result.artist;
+    if (result.genre && !fld.genre.value) fld.genre.value = result.genre;
+    if (result.coverUrl && !state.formImages.cover) {
+      const dataUrl = await urlToCompressedDataURL(result.coverUrl);
+      if (dataUrl) {
+        state.formImages.cover = dataUrl;
+        refreshImageSlot('cover');
+      }
+    }
+    showToast('Lookup complete. Review and edit before saving.', 'success');
+  } catch (err) {
+    showToast('Lookup failed: ' + (err.message || 'unknown error'), 'error');
+  } finally {
+    lblBtn.disabled = false;
+    lblSpan.textContent = 'Lookup';
+  }
+}
+
+async function lookupDiscogs(code) {
+  const token = localStorage.getItem('discogs_token');
+  if (!token) {
+    showToast('Add a Discogs token in Settings first.', 'error');
+    return null;
+  }
+  const url = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
+  const resp = await fetch(url, { headers: { 'User-Agent': 'StacksPWA/1.0' } });
+  if (!resp.ok) throw new Error('Discogs ' + resp.status);
+  const data = await resp.json();
+  if (!data.results || !data.results.length) return null;
+  // Prefer release/master types
+  const r = data.results.find(x => x.type === 'release') || data.results[0];
+  let title = r.title || '';
+  let artist = '';
+  if (title.includes(' - ')) {
+    const parts = title.split(' - ');
+    artist = parts[0].trim();
+    title = parts.slice(1).join(' - ').trim();
+  }
+  const genre = (r.genre && r.genre[0]) || (r.style && r.style[0]) || '';
+  return { title, artist, genre, coverUrl: r.cover_image || r.thumb };
+}
+
+async function lookupDvd(code) {
+  // Free, no-auth endpoint
+  const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(code)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('UPC ' + resp.status);
+  const data = await resp.json();
+  if (!data.items || !data.items.length) return null;
+  const item = data.items[0];
+  const title = item.title || '';
+  const coverUrl = (item.images && item.images[0]) || null;
+  // Genre rarely present from UPC db
+  return { title, artist: '', genre: '', coverUrl };
+}
+
+// ---------- Settings: Discogs token ----------
+const settingsBtn = document.getElementById('settingsBtn');
+settingsBtn.addEventListener('click', () => {
+  document.getElementById('discogsToken').value = localStorage.getItem('discogs_token') || '';
+  openModal('settingsModal');
+});
+document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
+document.getElementById('settingsDoneBtn').addEventListener('click', () => closeModal('settingsModal'));
+document.getElementById('saveTokenBtn').addEventListener('click', () => {
+  const v = document.getElementById('discogsToken').value.trim();
+  if (v) localStorage.setItem('discogs_token', v);
+  else localStorage.removeItem('discogs_token');
+  showToast('Token saved', 'success');
+});
+
+// ---------- Export ----------
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+}
+
+function makeStamp() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
+document.getElementById('exportJsonBtn').addEventListener('click', () => {
+  const payload = {
+    app: 'the_j_stash',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: state.items,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, `j_stash_backup_${makeStamp()}.json`);
+  showToast('JSON saved to Downloads', 'success');
+});
+
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  const headers = ['id','type','title','artist','genre','barcode','note','addedAt','updatedAt'];
+  const rows = [headers.join(',')];
+  for (const it of state.items) {
+    const row = headers.map(h => {
+      let v = it[h];
+      if (h === 'addedAt' || h === 'updatedAt') v = v ? new Date(v).toISOString() : '';
+      v = (v == null) ? '' : String(v);
+      if (/[",\n\r]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+      return v;
+    });
+    rows.push(row.join(','));
+  }
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  downloadBlob(blob, `j_stash_backup_${makeStamp()}.csv`);
+  showToast('CSV saved to Downloads', 'success');
+});
+
+document.getElementById('exportZipBtn').addEventListener('click', exportZip);
+
+// Minimal ZIP writer (store-only, no compression). Keeps the bundle small.
+async function exportZip() {
+  showToast('Building ZIP backup...');
+  const files = [];
+  // JSON manifest
+  const payload = {
+    app: 'the_j_stash',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items: state.items.map(it => {
+      const copy = { ...it };
+      // Strip image data; reference filenames instead.
+      if (copy.cover) copy.cover_file = `images/${it.id}_cover.jpg`;
+      if (copy.secondary) copy.secondary_file = `images/${it.id}_secondary.jpg`;
+      delete copy.cover; delete copy.secondary;
+      return copy;
+    }),
+  };
+  files.push({ name: 'j_stash.json', data: new TextEncoder().encode(JSON.stringify(payload, null, 2)) });
+
+  // CSV
+  const headers = ['id','type','title','artist','genre','barcode','note','addedAt','updatedAt'];
+  const rows = [headers.join(',')];
+  for (const it of state.items) {
+    const row = headers.map(h => {
+      let v = it[h];
+      if (h === 'addedAt' || h === 'updatedAt') v = v ? new Date(v).toISOString() : '';
+      v = (v == null) ? '' : String(v);
+      if (/[",\n\r]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+      return v;
+    });
+    rows.push(row.join(','));
+  }
+  files.push({ name: 'j_stash.csv', data: new TextEncoder().encode(rows.join('\n')) });
+
+  // Images (decode dataURLs to bytes)
+  for (const it of state.items) {
+    if (it.cover) {
+      const bytes = dataUrlToBytes(it.cover);
+      if (bytes) files.push({ name: `images/${it.id}_cover.jpg`, data: bytes });
+    }
+    if (it.secondary) {
+      const bytes = dataUrlToBytes(it.secondary);
+      if (bytes) files.push({ name: `images/${it.id}_secondary.jpg`, data: bytes });
+    }
+  }
+
+  const zipBytes = buildZip(files);
+  const blob = new Blob([zipBytes], { type: 'application/zip' });
+  downloadBlob(blob, `j_stash_backup_${makeStamp()}.zip`);
+  showToast('ZIP saved to Downloads', 'success');
+}
+
+function dataUrlToBytes(dataUrl) {
+  try {
+    const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+    if (!m) return null;
+    const bin = atob(m[2]);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return arr;
+  } catch { return null; }
+}
+
+// CRC32 + minimal store-only ZIP encoder
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function buildZip(files) {
+  const enc = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  for (const f of files) {
+    const nameBytes = enc.encode(f.name);
+    const data = f.data;
+    const crc = crc32(data);
+    const size = data.length;
+
+    // Local file header
+    const local = new Uint8Array(30 + nameBytes.length + size);
+    const dv = new DataView(local.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true); // version
+    dv.setUint16(6, 0, true);  // flags
+    dv.setUint16(8, 0, true);  // method = store
+    dv.setUint16(10, 0, true); // mtime
+    dv.setUint16(12, 0, true); // mdate
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, size, true);
+    dv.setUint32(22, size, true);
+    dv.setUint16(26, nameBytes.length, true);
+    dv.setUint16(28, 0, true);
+    local.set(nameBytes, 30);
+    local.set(data, 30 + nameBytes.length);
+    localParts.push(local);
+
+    // Central directory entry
+    const central = new Uint8Array(46 + nameBytes.length);
+    const cdv = new DataView(central.buffer);
+    cdv.setUint32(0, 0x02014b50, true);
+    cdv.setUint16(4, 20, true);
+    cdv.setUint16(6, 20, true);
+    cdv.setUint16(8, 0, true);
+    cdv.setUint16(10, 0, true);
+    cdv.setUint16(12, 0, true);
+    cdv.setUint16(14, 0, true);
+    cdv.setUint32(16, crc, true);
+    cdv.setUint32(20, size, true);
+    cdv.setUint32(24, size, true);
+    cdv.setUint16(28, nameBytes.length, true);
+    cdv.setUint16(30, 0, true);
+    cdv.setUint16(32, 0, true);
+    cdv.setUint16(34, 0, true);
+    cdv.setUint16(36, 0, true);
+    cdv.setUint32(38, 0, true);
+    cdv.setUint32(42, offset, true);
+    central.set(nameBytes, 46);
+    centralParts.push(central);
+
+    offset += local.length;
+  }
+  const centralSize = centralParts.reduce((n, p) => n + p.length, 0);
+  const centralOffset = offset;
+  // EOCD
+  const eocd = new Uint8Array(22);
+  const edv = new DataView(eocd.buffer);
+  edv.setUint32(0, 0x06054b50, true);
+  edv.setUint16(4, 0, true);
+  edv.setUint16(6, 0, true);
+  edv.setUint16(8, files.length, true);
+  edv.setUint16(10, files.length, true);
+  edv.setUint32(12, centralSize, true);
+  edv.setUint32(16, centralOffset, true);
+  edv.setUint16(20, 0, true);
+
+  const total = offset + centralSize + eocd.length;
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const part of localParts) { out.set(part, p); p += part.length; }
+  for (const part of centralParts) { out.set(part, p); p += part.length; }
+  out.set(eocd, p);
+  return out;
+}
+
+// ---------- Import ----------
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.json')) {
+    showToast('Please pick a JSON backup file. ZIP import is not supported yet.', 'error');
+    return;
+  }
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data || !Array.isArray(data.items)) throw new Error('Invalid backup');
+    if (!confirm(`Import ${data.items.length} entries? Existing entries with the same ID will be replaced.`)) return;
+    for (const item of data.items) {
+      if (!item.id) item.id = uid();
+      if (!item.addedAt) item.addedAt = Date.now();
+      await dbPut(item);
+    }
+    state.items = await dbGetAll();
+    renderAll();
+    showToast(`Imported ${data.items.length} entries`, 'success');
+  } catch (err) {
+    showToast('Import failed: ' + err.message, 'error');
+  }
+});
+
+// ---------- Erase ----------
+document.getElementById('eraseBtn').addEventListener('click', async () => {
+  if (!confirm('Erase ALL entries permanently? This cannot be undone.')) return;
+  if (!confirm('Really erase everything? Last chance.')) return;
+  await dbClear();
+  state.items = [];
+  renderAll();
+  showToast('All data erased', 'success');
+});
+
+// ---------- Boot ----------
+(async function init() {
+  try {
+    state.items = await dbGetAll();
+  } catch (err) {
+    showToast('Storage error: ' + err.message, 'error');
+  }
+  renderAll();
+})();
+
+// Register a tiny inline service worker for offline cache (optional, best-effort)
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const C = 'stacks-v1';
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => self.clients.claim());
+    self.addEventListener('fetch', e => {
+      const req = e.request;
+      if (req.method !== 'GET') return;
+      e.respondWith(
+        caches.open(C).then(cache =>
+          cache.match(req).then(hit => {
+            const fetcher = fetch(req).then(resp => {
+              try { cache.put(req, resp.clone()); } catch {}
+              return resp;
+            }).catch(() => hit);
+            return hit || fetcher;
+          })
+        )
+      );
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+</script>
+</body>
+</html>
