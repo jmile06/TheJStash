@@ -1202,16 +1202,17 @@ function openModal(id) {
   // Push a history state so back button pops the modal instead of leaving the app.
   history.pushState({ modal: id }, '');
 }
-function closeModal(id) {
+// Pass skipHistory=true when programmatically closing one modal to open another,
+// so we don't kick the new modal closed via a delayed popstate event.
+function closeModal(id, skipHistory) {
   const el = document.getElementById(id);
   if (!el || !el.classList.contains('open')) return;
   el.classList.remove('open');
-  // Remove the matching history entry. If we're already responding to popstate, skip.
   const idx = modalStack.lastIndexOf(id);
   if (idx >= 0) modalStack.splice(idx, 1);
   if (modalStack.length === 0) document.body.style.overflow = '';
-  // If this close was user-initiated (not a back button event), step history back.
-  if (!closeModal._fromPop) {
+  // Step history back only when the user initiated the close themselves.
+  if (!closeModal._fromPop && !skipHistory) {
     try { history.back(); } catch {}
   }
 }
@@ -1503,11 +1504,20 @@ async function startScanner(mode) {
 
   state.scannerLoop = async function loop() {
     if (!state.scannerActive) return;
+    // Don't try to detect until the video has actually been playing for a bit.
+    // Without this, BarcodeDetector can return a false hit on the very first
+    // pre-stream frame and we close before the user sees the camera at all.
+    if (!state.scannerReady) {
+      if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
+      return;
+    }
     try {
       const codes = await state.scannerDetector.detect(video);
       if (codes && codes.length) {
-        const code = codes[0].rawValue;
-        if (code) {
+        const code = (codes[0].rawValue || '').trim();
+        // Reject obvious garbage: empty, too short, or non-numeric where we expect digits.
+        // Real retail barcodes are 8-14 digits.
+        if (code && code.length >= 8 && /^[0-9]+$/.test(code)) {
           state.scannerActive = false;
           await onBarcodeScanned(code, state.scannerMode);
           return;
@@ -1516,6 +1526,9 @@ async function startScanner(mode) {
     } catch {}
     if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
   };
+  // Allow ~700ms of live video before we trust detections.
+  state.scannerReady = false;
+  setTimeout(() => { state.scannerReady = true; }, 700);
   requestAnimationFrame(state.scannerLoop);
 }
 
@@ -1558,11 +1571,12 @@ async function onBarcodeScanned(code, mode) {
   }
 
   // Close the scanner camera regardless of whether we found anything.
+  // Pass skipHistory because we're about to immediately open another modal.
   if (state.scannerStream) {
     state.scannerStream.getTracks().forEach(t => t.stop());
     state.scannerStream = null;
   }
-  closeModal('scannerModal');
+  closeModal('scannerModal', true);
 
   if (mode === 'quickAdd') {
     // Open a fresh form prefilled with whatever we got.
