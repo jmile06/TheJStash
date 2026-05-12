@@ -927,10 +927,11 @@
 
           <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
             <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">Google Drive</h5>
-            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Paste a Google OAuth Client ID. Setup guide: see app's README or ask Claude.</p>
-            <input type="text" class="field-input" id="googleClientId" placeholder="123456789-abc.apps.googleusercontent.com" style="margin-bottom:6px;">
+            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Paste your Google OAuth Client ID and Client Secret (both required by Google's token endpoint even with PKCE).</p>
+            <input type="text" class="field-input" id="googleClientId" placeholder="Client ID: 123456789-abc.apps.googleusercontent.com" style="margin-bottom:6px;">
+            <input type="password" class="field-input" id="googleClientSecret" placeholder="Client Secret: GOCSPX-..." style="margin-bottom:6px;">
             <div class="settings-buttons">
-              <button class="btn btn-secondary" id="saveGoogleClientBtn">Save ID</button>
+              <button class="btn btn-secondary" id="saveGoogleClientBtn">Save</button>
               <button class="btn btn-primary" id="connectGoogleBtn">Connect Google Drive</button>
             </div>
           </div>
@@ -942,6 +943,19 @@
             <div class="settings-buttons">
               <button class="btn btn-secondary" id="saveOneDriveClientBtn">Save ID</button>
               <button class="btn btn-primary" id="connectOneDriveBtn">Connect OneDrive</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+            <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">GitHub</h5>
+            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Stores backups as commits in a repo. Use a fine-grained Personal Access Token scoped to one repo with Contents: Read &amp; Write.</p>
+            <input type="password" class="field-input" id="githubToken" placeholder="github_pat_..." style="margin-bottom:6px;">
+            <input type="text" class="field-input" id="githubOwner" placeholder="Owner (your username)" style="margin-bottom:6px;">
+            <input type="text" class="field-input" id="githubRepo" placeholder="Repo name (e.g. TheJStash)" style="margin-bottom:6px;">
+            <input type="text" class="field-input" id="githubBranch" placeholder="Branch (default: main)" value="main" style="margin-bottom:6px;">
+            <div class="settings-buttons">
+              <button class="btn btn-secondary" id="saveGithubBtn">Save Config</button>
+              <button class="btn btn-primary" id="connectGithubBtn">Connect GitHub</button>
             </div>
           </div>
 
@@ -2071,9 +2085,11 @@ document.getElementById('saveTmdbBtn').addEventListener('click', () => {
 
 // Cloud backup wiring
 document.getElementById('saveGoogleClientBtn').addEventListener('click', () => {
-  const v = document.getElementById('googleClientId').value.trim();
-  setCloudClientId('google', v);
-  showToast('Google Client ID saved', 'success');
+  const id = document.getElementById('googleClientId').value.trim();
+  const secret = document.getElementById('googleClientSecret').value.trim();
+  setCloudClientId('google', id);
+  setCloudClientSecret('google', secret);
+  showToast('Google credentials saved', 'success');
 });
 document.getElementById('saveOneDriveClientBtn').addEventListener('click', () => {
   const v = document.getElementById('onedriveClientId').value.trim();
@@ -2082,6 +2098,16 @@ document.getElementById('saveOneDriveClientBtn').addEventListener('click', () =>
 });
 document.getElementById('connectGoogleBtn').addEventListener('click', () => connectCloudProvider('google'));
 document.getElementById('connectOneDriveBtn').addEventListener('click', () => connectCloudProvider('onedrive'));
+document.getElementById('saveGithubBtn').addEventListener('click', () => {
+  setGithubConfig({
+    token: document.getElementById('githubToken').value.trim(),
+    owner: document.getElementById('githubOwner').value.trim(),
+    repo: document.getElementById('githubRepo').value.trim(),
+    branch: document.getElementById('githubBranch').value.trim() || 'main',
+  });
+  showToast('GitHub config saved', 'success');
+});
+document.getElementById('connectGithubBtn').addEventListener('click', connectGithub);
 document.getElementById('manualBackupNowBtn').addEventListener('click', manualCloudBackup);
 document.getElementById('restoreFromCloudBtn').addEventListener('click', restoreFromCloud);
 document.getElementById('disconnectCloudBtn').addEventListener('click', async () => {
@@ -2338,7 +2364,27 @@ const CLOUD_PROVIDERS = {
     scopes: 'Files.ReadWrite offline_access',
     extraAuthParams: {},
   },
+  // GitHub is handled separately below: it uses a Personal Access Token, not OAuth.
 };
+
+// GitHub-specific config and helpers. Lives in localStorage to keep tokens
+// scoped per browser. Token MUST be a fine-grained PAT scoped to one repo
+// with "Contents: Read and write" permission.
+const GITHUB_FILE_PATH = 'backups/the_j_stash.json';
+function getGithubConfig() {
+  return {
+    token: localStorage.getItem('github_token') || '',
+    owner: localStorage.getItem('github_owner') || '',
+    repo: localStorage.getItem('github_repo') || '',
+    branch: localStorage.getItem('github_branch') || 'main',
+  };
+}
+function setGithubConfig(cfg) {
+  if (cfg.token) localStorage.setItem('github_token', cfg.token); else localStorage.removeItem('github_token');
+  if (cfg.owner) localStorage.setItem('github_owner', cfg.owner); else localStorage.removeItem('github_owner');
+  if (cfg.repo) localStorage.setItem('github_repo', cfg.repo); else localStorage.removeItem('github_repo');
+  if (cfg.branch) localStorage.setItem('github_branch', cfg.branch); else localStorage.removeItem('github_branch');
+}
 
 function getCloudClientId(provider) {
   return localStorage.getItem(`cloud_client_id_${provider}`) || '';
@@ -2346,6 +2392,15 @@ function getCloudClientId(provider) {
 function setCloudClientId(provider, id) {
   if (id) localStorage.setItem(`cloud_client_id_${provider}`, id);
   else localStorage.removeItem(`cloud_client_id_${provider}`);
+}
+// Google requires client_secret in token exchange even for browser/PKCE clients.
+// For "public" clients this isn't truly secret, but the API rejects requests without it.
+function getCloudClientSecret(provider) {
+  return localStorage.getItem(`cloud_client_secret_${provider}`) || '';
+}
+function setCloudClientSecret(provider, secret) {
+  if (secret) localStorage.setItem(`cloud_client_secret_${provider}`, secret);
+  else localStorage.removeItem(`cloud_client_secret_${provider}`);
 }
 
 async function loadCloudState() {
@@ -2441,6 +2496,9 @@ async function handleOAuthCallback() {
       redirect_uri: redirectUri,
       code_verifier: verifier,
     });
+    // Google requires client_secret in the token exchange even with PKCE.
+    const secret = getCloudClientSecret(provider);
+    if (secret) body.set('client_secret', secret);
     const resp = await fetch(cfg.tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -2480,6 +2538,8 @@ async function refreshCloudToken() {
       grant_type: 'refresh_token',
       refresh_token: cloudState.refreshToken,
     });
+    const secret = getCloudClientSecret(cloudState.provider);
+    if (secret) body.set('client_secret', secret);
     const resp = await fetch(cfg.tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -2557,6 +2617,91 @@ async function onedriveWrite(token, content) {
   if (!resp.ok) throw new Error('OneDrive write ' + resp.status);
 }
 
+// ---- GitHub write logic ----
+// The Contents API requires the file's current SHA when updating. On the first
+// write, the file doesn't exist, so we omit the SHA and create. Subsequent
+// writes fetch the current SHA, then PUT with it as a precondition.
+async function githubFetchCurrentSha(cfg) {
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${GITHUB_FILE_PATH}?ref=${encodeURIComponent(cfg.branch)}`;
+  const resp = await fetch(url, {
+    headers: {
+      Authorization: 'Bearer ' + cfg.token,
+      Accept: 'application/vnd.github+json',
+    },
+  });
+  if (resp.status === 404) return null; // file doesn't exist yet
+  if (!resp.ok) throw new Error('GitHub read ' + resp.status);
+  const data = await resp.json();
+  return data.sha;
+}
+
+async function githubWriteFile(cfg, content) {
+  const sha = await githubFetchCurrentSha(cfg);
+  // GitHub Contents API expects content as base64-encoded UTF-8.
+  const b64 = btoa(unescape(encodeURIComponent(content)));
+  const body = {
+    message: `Backup: ${state.items.length} items @ ${new Date().toISOString()}`,
+    content: b64,
+    branch: cfg.branch,
+  };
+  if (sha) body.sha = sha;
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${GITHUB_FILE_PATH}`;
+  const resp = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Bearer ' + cfg.token,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`GitHub write ${resp.status}: ${errText.slice(0, 200)}`);
+  }
+}
+
+async function githubReadFile(cfg) {
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${GITHUB_FILE_PATH}?ref=${encodeURIComponent(cfg.branch)}`;
+  const resp = await fetch(url, {
+    headers: {
+      Authorization: 'Bearer ' + cfg.token,
+      Accept: 'application/vnd.github+json',
+    },
+  });
+  if (resp.status === 404) throw new Error('No backup file found in the repo');
+  if (!resp.ok) throw new Error('GitHub read ' + resp.status);
+  const data = await resp.json();
+  // Content is base64-encoded UTF-8.
+  return decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+}
+
+function isGithubConfigured() {
+  const cfg = getGithubConfig();
+  return !!(cfg.token && cfg.owner && cfg.repo);
+}
+
+async function connectGithub() {
+  // GitHub doesn't have OAuth in our setup — connecting just means having token/owner/repo set.
+  if (!isGithubConfigured()) {
+    showToast('Fill in GitHub token, owner, and repo first', 'error');
+    return;
+  }
+  // Smoke test: try to read or create the file.
+  try {
+    showToast('Testing GitHub connection...');
+    await githubFetchCurrentSha(getGithubConfig()); // 404 is fine, just verifies auth works
+    cloudState.provider = 'github';
+    cloudState.fileId = null;
+    await saveCloudState();
+    refreshBackupSettingsUI();
+    showToast('Connected to GitHub', 'success');
+    await scheduleAutoBackupImmediate();
+  } catch (err) {
+    showToast('GitHub connection failed: ' + err.message, 'error');
+  }
+}
+
 // Debounced wrapper: rapid edits coalesce into one write.
 function scheduleAutoBackup() {
   if (!cloudState.provider) return;
@@ -2572,6 +2717,26 @@ async function scheduleAutoBackupImmediate() {
 
 async function writeCloudBackup() {
   if (!cloudState.provider) return;
+  // GitHub uses a PAT, not OAuth — no token refresh needed.
+  if (cloudState.provider === 'github') {
+    if (!isGithubConfigured()) {
+      showToast('GitHub config missing — re-enter in Settings', 'error');
+      return;
+    }
+    const payload = {
+      app: 'the_j_stash',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      items: state.items,
+    };
+    try {
+      await githubWriteFile(getGithubConfig(), JSON.stringify(payload, null, 2));
+    } catch (err) {
+      showToast('GitHub backup failed: ' + (err.message || 'unknown'), 'error');
+    }
+    return;
+  }
+  // Google / OneDrive path
   const token = await getValidAccessToken();
   if (!token) {
     showToast('Cloud session expired — reconnect in Settings', 'error');
@@ -2617,17 +2782,31 @@ async function manualCloudBackup() {
 function refreshBackupSettingsUI() {
   const status = document.getElementById('backupCloudStatus');
   if (!status) return;
-  if (cloudState.provider) {
+  if (cloudState.provider === 'github') {
+    const cfg = getGithubConfig();
+    status.innerHTML = `Connected to <strong>GitHub</strong> at <strong>${escapeHtml(cfg.owner)}/${escapeHtml(cfg.repo)}</strong> (branch ${escapeHtml(cfg.branch)}), file <strong>${GITHUB_FILE_PATH}</strong>.`;
+  } else if (cloudState.provider) {
     const name = CLOUD_PROVIDERS[cloudState.provider].name;
     status.innerHTML = `Connected to <strong>${escapeHtml(name)}</strong>. Backups go to <strong>${BACKUP_FILENAME}</strong> at the root of your drive.`;
   } else {
     status.textContent = 'Not connected. Pick a provider below to enable automatic cloud backups.';
   }
-  // Populate client ID inputs if present.
+  // Populate inputs
   const gId = document.getElementById('googleClientId');
+  const gSec = document.getElementById('googleClientSecret');
   const mId = document.getElementById('onedriveClientId');
   if (gId) gId.value = getCloudClientId('google');
+  if (gSec) gSec.value = getCloudClientSecret('google');
   if (mId) mId.value = getCloudClientId('onedrive');
+  const ghCfg = getGithubConfig();
+  const ghTok = document.getElementById('githubToken');
+  const ghOwner = document.getElementById('githubOwner');
+  const ghRepo = document.getElementById('githubRepo');
+  const ghBranch = document.getElementById('githubBranch');
+  if (ghTok) ghTok.value = ghCfg.token;
+  if (ghOwner) ghOwner.value = ghCfg.owner;
+  if (ghRepo) ghRepo.value = ghCfg.repo;
+  if (ghBranch) ghBranch.value = ghCfg.branch;
 }
 
 // Restore the latest backup from cloud — used when device storage is wiped.
@@ -2637,33 +2816,37 @@ async function restoreFromCloud() {
     return;
   }
   if (!confirm('Restore from cloud will REPLACE current entries with cloud copy. Continue?')) return;
-  const token = await getValidAccessToken();
-  if (!token) {
-    showToast('Cloud session expired — reconnect in Settings', 'error');
-    return;
-  }
   try {
     let content = null;
-    if (cloudState.provider === 'google') {
-      const q = encodeURIComponent(`name = '${BACKUP_FILENAME}' and trashed = false`);
-      const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      if (!searchResp.ok) throw new Error('Search ' + searchResp.status);
-      const searchData = await searchResp.json();
-      if (!searchData.files || !searchData.files.length) throw new Error('No backup file found in your Drive');
-      const fileId = searchData.files[0].id;
-      const downloadResp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      if (!downloadResp.ok) throw new Error('Download ' + downloadResp.status);
-      content = await downloadResp.text();
-    } else if (cloudState.provider === 'onedrive') {
-      const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(BACKUP_FILENAME)}:/content`, {
-        headers: { Authorization: 'Bearer ' + token },
-      });
-      if (!resp.ok) throw new Error('Download ' + resp.status);
-      content = await resp.text();
+    if (cloudState.provider === 'github') {
+      content = await githubReadFile(getGithubConfig());
+    } else {
+      const token = await getValidAccessToken();
+      if (!token) {
+        showToast('Cloud session expired — reconnect in Settings', 'error');
+        return;
+      }
+      if (cloudState.provider === 'google') {
+        const q = encodeURIComponent(`name = '${BACKUP_FILENAME}' and trashed = false`);
+        const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (!searchResp.ok) throw new Error('Search ' + searchResp.status);
+        const searchData = await searchResp.json();
+        if (!searchData.files || !searchData.files.length) throw new Error('No backup file found in your Drive');
+        const fileId = searchData.files[0].id;
+        const downloadResp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (!downloadResp.ok) throw new Error('Download ' + downloadResp.status);
+        content = await downloadResp.text();
+      } else if (cloudState.provider === 'onedrive') {
+        const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(BACKUP_FILENAME)}:/content`, {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (!resp.ok) throw new Error('Download ' + resp.status);
+        content = await resp.text();
+      }
     }
     const data = JSON.parse(content);
     if (!data || !Array.isArray(data.items)) throw new Error('Backup file looks invalid');
