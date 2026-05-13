@@ -7,715 +7,244 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>The J Stash — Vinyl & DVD Catalog</title>
-<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22The%20J%20Stash%22%2C%22short_name%22%3A%22J%20Stash%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f0f10%22%2C%22theme_color%22%3A%22%230f0f10%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzBmMGYxMCIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjY0IiBmaWxsPSIjZTI4MjEzIi8%2BPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iMTYiIGZpbGw9IiMwZjBmMTAiLz48L3N2Zz4%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22The%20J%20Stash%22%2C%22short_name%22%3A%22J%20Stash%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f0f10%22%2C%22theme_color%22%3A%22%230f0f10%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzBmMGYxMCIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjY0IiBmaWxsPSIjZTI4MjEzIi8%2BPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iMTYiIGZpbGw9IiMwZjBmMTAiLz48L3N2Zz4%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg+xml%22%7D%5D%7D">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap');
-
   :root {
-    --bg: #0f0f10;
-    --bg-elev: #1a1a1c;
-    --bg-elev-2: #232326;
-    --border: #2a2a2e;
-    --text: #ececec;
-    --text-dim: #9a9a9e;
-    --text-faint: #5a5a5e;
-    --accent: #e28213;
-    --accent-dim: #c46b08;
-    --danger: #d04a3d;
-    --success: #3da66e;
-    --radius: 8px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --bg: #0f0f10; --bg-elev: #1a1a1c; --bg-elev-2: #232326;
+    --border: #2a2a2e; --text: #ececec; --text-dim: #9a9a9e; --text-faint: #5a5a5e;
+    --accent: #e28213; --accent-dim: #c46b08;
+    --danger: #d04a3d; --success: #3da66e; --warn: #d4a017;
+    --radius: 8px; --shadow: 0 4px 24px rgba(0,0,0,0.4);
   }
-
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter Tight', system-ui, sans-serif;
-    font-size: 15px;
-    -webkit-font-smoothing: antialiased;
-    overscroll-behavior-y: none;
-  }
-
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-top: env(safe-area-inset-top);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .app-header {
-    padding: 16px 20px 12px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .brand {
-    font-family: 'Fraunces', serif;
-    font-weight: 800;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-  }
-  .brand span { color: var(--accent); }
-
-  .header-actions { display: flex; gap: 8px; }
-
-  .icon-btn {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    color: var(--text);
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .icon-btn:active { transform: scale(0.95); background: var(--bg-elev-2); }
-  .icon-btn svg { width: 18px; height: 18px; }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 65px;
-    z-index: 40;
-  }
-  .tab {
-    flex: 1;
-    padding: 14px 8px;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dim);
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-    font-family: inherit;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab .count {
-    display: inline-block;
-    margin-left: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
-    color: var(--text-faint);
-    font-size: 12px;
-  }
-  .tab.active .count { color: var(--accent-dim); }
-
-  /* Search & Sort bar */
-  .toolbar {
-    padding: 12px 16px;
-    background: var(--bg);
-    display: flex;
-    gap: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .search-input {
-    flex: 1;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 14px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 14px;
-    outline: none;
-  }
-  .search-input:focus { border-color: var(--accent); }
-  .search-input::placeholder { color: var(--text-faint); }
-
-  .sort-btn {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 0 12px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-  .sort-btn:active { background: var(--bg-elev-2); }
-
-  /* Main content */
-  main {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-  }
-
-  .empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-dim);
-  }
-  .empty h3 {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    margin: 0 0 8px;
-    color: var(--text);
-  }
-  .empty p { margin: 0; font-size: 14px; }
-
-  /* Item grid */
-  .item-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
-  @media (min-width: 640px) {
-    .item-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (min-width: 900px) {
-    .item-grid { grid-template-columns: repeat(4, 1fr); }
-  }
-
-  .card {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.1s, border-color 0.15s;
-  }
-  .card:active { transform: scale(0.98); }
-
-  .card-cover {
-    width: 100%;
-    aspect-ratio: 1;
-    background: var(--bg-elev-2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-  }
-  .card-cover img { width: 100%; height: 100%; object-fit: cover; }
-  .card-cover .placeholder {
-    color: var(--text-faint);
-    font-family: 'Fraunces', serif;
-    font-size: 32px;
-  }
-  .card-type-badge {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background: rgba(15,15,16,0.85);
-    backdrop-filter: blur(4px);
-    color: var(--accent);
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .card-body { padding: 10px 12px; }
-  .card-title {
-    font-weight: 600;
-    font-size: 14px;
-    margin: 0 0 2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .card-sub {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* FAB */
-  .fab {
-    position: fixed;
-    right: 20px;
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    box-shadow: 0 6px 20px rgba(226,130,19,0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 60;
-    transition: transform 0.1s;
-  }
-  .fab:active { transform: scale(0.92); }
-  .fab svg { width: 26px; height: 26px; }
-
-  /* Modal */
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 100;
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal {
-    background: var(--bg);
-    width: 100%;
-    max-width: 600px;
-    max-height: 100vh;
-    border-radius: 16px 16px 0 0;
-    overflow-y: auto;
-    animation: slideUp 0.25s ease-out;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  .modal-header {
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    z-index: 1;
-  }
-  .modal-title {
-    font-family: 'Fraunces', serif;
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-  }
-  .modal-body { padding: 14px 18px 18px; }
-
-  /* Form */
-  .field { margin-bottom: 10px; }
-  .field-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-dim);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .field-label .req { color: var(--accent); }
-  .field-input,
-  .field-textarea,
-  .field-select {
-    width: 100%;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px 12px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 14px;
-    outline: none;
-  }
-  .field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--accent); }
-  .field-textarea { resize: vertical; min-height: 50px; }
-
-  .type-toggle {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .type-toggle button {
-    flex: 1;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 8px;
-    border-radius: var(--radius);
-    font-family: inherit;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .type-toggle button.active {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-  }
-
-  /* Image picker — wider-than-tall ratio to save vertical space on phones */
-  .image-picker {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  .image-slot {
-    aspect-ratio: 4 / 3;
-    background: var(--bg-elev);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-direction: column;
-    color: var(--text-faint);
-    font-size: 11px;
-    text-align: center;
-    overflow: hidden;
-    position: relative;
-  }
-  .image-slot img { width: 100%; height: 100%; object-fit: cover; }
-  .image-slot .slot-label {
-    position: absolute;
-    bottom: 4px;
-    left: 4px;
-    right: 4px;
-    background: rgba(15,15,16,0.85);
-    color: var(--text);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .image-slot svg { width: 22px; height: 22px; margin-bottom: 2px; }
-
-  .image-actions {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    display: flex;
-    gap: 4px;
-  }
-  .image-action-btn {
-    background: rgba(15,15,16,0.85);
-    color: var(--text);
-    border: none;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  .image-action-btn svg { width: 12px; height: 12px; margin: 0; }
-
-  /* Title autocomplete dropdown */
-  .title-field-wrap { position: relative; }
-  .autocomplete-list {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    max-height: 320px;
-    overflow-y: auto;
-    z-index: 5;
-    box-shadow: var(--shadow);
-    display: none;
-  }
-  .autocomplete-list.open { display: block; }
-  .autocomplete-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border);
-  }
-  .autocomplete-item:last-child { border-bottom: none; }
-  .autocomplete-item:active, .autocomplete-item:hover { background: var(--bg-elev-2); }
-  .autocomplete-thumb {
-    width: 42px;
-    height: 42px;
-    border-radius: 4px;
-    background: var(--bg-elev-2);
-    flex-shrink: 0;
-    object-fit: cover;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-faint);
-    font-family: 'Fraunces', serif;
-  }
-  .autocomplete-text { flex: 1; min-width: 0; }
-  .autocomplete-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .autocomplete-sub {
-    font-size: 12px;
-    color: var(--text-dim);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .autocomplete-status {
-    padding: 10px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 13px;
-  }
-
-  /* Barcode row */
-  .barcode-row {
-    display: flex;
-    gap: 8px;
-  }
-  .barcode-row .field-input { flex: 1; }
-  .barcode-btn {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 0 14px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .barcode-btn:active { background: var(--bg-elev-2); }
-  .barcode-btn svg { width: 16px; height: 16px; }
-
-  /* Buttons */
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 14px;
-  }
-  .btn {
-    flex: 1;
-    padding: 11px;
-    border-radius: var(--radius);
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-  }
-  .btn-primary { background: var(--accent); color: var(--bg); }
-  .btn-secondary { background: var(--bg-elev); color: var(--text); border-color: var(--border); }
-  .btn-danger { background: var(--danger); color: white; }
-  .btn:active { transform: scale(0.98); }
-
-  /* Detail view */
-  .detail-cover {
-    width: 100%;
-    max-width: 360px;
-    aspect-ratio: 1;
-    margin: 0 auto 20px;
-    background: var(--bg-elev);
-    border-radius: var(--radius);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .detail-cover img { width: 100%; height: 100%; object-fit: cover; }
-
-  .detail-secondary-img {
-    width: 100%;
-    max-width: 240px;
-    aspect-ratio: 1;
-    margin: 0 auto 20px;
-    background: var(--bg-elev);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .detail-secondary-img img { width: 100%; height: 100%; object-fit: cover; }
-
-  .detail-title {
-    font-family: 'Fraunces', serif;
-    font-size: 26px;
-    font-weight: 600;
-    margin: 0 0 4px;
-    line-height: 1.2;
-  }
-  .detail-artist {
-    color: var(--text-dim);
-    font-size: 16px;
-    margin: 0 0 16px;
-  }
-  .detail-meta {
-    display: grid;
-    gap: 12px;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .meta-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    font-size: 14px;
-  }
-  .meta-row .meta-label {
-    color: var(--text-dim);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 600;
-  }
-  .meta-row .meta-value {
-    text-align: right;
-    word-break: break-word;
-  }
-  .note-block {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    margin-bottom: 16px;
-    white-space: pre-wrap;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-elev-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 18px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    z-index: 200;
-    box-shadow: var(--shadow);
-    animation: toastIn 0.2s;
-    max-width: 90vw;
-  }
-  .toast.success { border-color: var(--success); }
-  .toast.error { border-color: var(--danger); }
-  @keyframes toastIn {
-    from { opacity: 0; transform: translate(-50%, -10px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
-  }
-
-  /* Sort menu */
-  .sort-menu {
-    background: var(--bg-elev);
-    border-radius: var(--radius);
-    padding: 4px;
-    width: 100%;
-  }
-  .sort-option {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    padding: 12px;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .sort-option:active { background: var(--bg-elev-2); }
-  .sort-option .check { color: var(--accent); }
-
-  /* Scanner */
-  #scannerVideo {
-    width: 100%;
-    max-height: 60vh;
-    border-radius: var(--radius);
-    background: black;
-  }
-  .scanner-info {
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 13px;
-    margin: 12px 0;
-  }
-
-  /* Settings list */
-  .settings-list { list-style: none; padding: 0; margin: 0; }
-  .settings-item {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    margin-bottom: 10px;
-  }
-  .settings-item h4 {
-    margin: 0 0 6px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .settings-item p {
-    margin: 0 0 10px;
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .settings-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-  .settings-buttons .btn { flex: 0 1 auto; padding: 8px 14px; font-size: 13px; }
-
-  .hidden-input { display: none; }
-
-  /* Spinner */
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:'Inter Tight',system-ui,sans-serif; font-size:15px;
+    -webkit-font-smoothing:antialiased; overscroll-behavior-y:none; }
+  body { padding-bottom: env(safe-area-inset-bottom); padding-top: env(safe-area-inset-top);
+    min-height:100vh; display:flex; flex-direction:column; }
+  .app-header { padding:12px 18px 10px; border-bottom:1px solid var(--border);
+    background:var(--bg); position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .brand { font-family:'Fraunces',serif; font-weight:800; font-size:22px; letter-spacing:-0.02em; }
+  .brand span { color:var(--accent); }
+  .header-actions { display:flex; gap:8px; align-items:center; }
+  .sync-indicator { display:flex; align-items:center; gap:4px; font-size:11px;
+    color:var(--text-faint); padding:4px 8px; border-radius:12px; border:1px solid var(--border); }
+  .sync-indicator.syncing { color:var(--warn); border-color:var(--warn); }
+  .sync-indicator.ok { color:var(--success); border-color:var(--success); }
+  .sync-indicator.error { color:var(--danger); border-color:var(--danger); }
+  .sync-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .sync-indicator.syncing .sync-dot { animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+  .icon-btn { background:var(--bg-elev); border:1px solid var(--border); color:var(--text);
+    width:34px; height:34px; border-radius:var(--radius);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; }
+  .icon-btn:active { transform:scale(0.95); background:var(--bg-elev-2); }
+  .icon-btn svg { width:18px; height:18px; }
+  .tabs { display:flex; background:var(--bg); border-bottom:1px solid var(--border);
+    position:sticky; top:59px; z-index:40; }
+  .tab { flex:1; padding:12px 8px; text-align:center; font-size:13px; font-weight:600;
+    color:var(--text-dim); background:transparent; border:none;
+    border-bottom:2px solid transparent; cursor:pointer; transition:color 0.15s,border-color 0.15s;
+    font-family:inherit; text-transform:uppercase; letter-spacing:0.06em; }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab .count { display:inline-block; margin-left:4px;
+    font-family:'JetBrains Mono',monospace; font-weight:500; color:var(--text-faint); font-size:12px; }
+  .tab.active .count { color:var(--accent-dim); }
+  .toolbar { padding:10px 16px; background:var(--bg);
+    display:flex; gap:8px; border-bottom:1px solid var(--border); }
+  .search-input { flex:1; background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:8px 14px; color:var(--text);
+    font-family:inherit; font-size:14px; outline:none; }
+  .search-input:focus { border-color:var(--accent); }
+  .search-input::placeholder { color:var(--text-faint); }
+  .sort-btn { background:var(--bg-elev); border:1px solid var(--border); color:var(--text);
+    padding:0 12px; border-radius:var(--radius); font-size:13px;
+    font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .sort-btn:active { background:var(--bg-elev-2); }
+  main { flex:1; padding:16px; overflow-y:auto; }
+  .empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
+  .empty h3 { font-family:'Fraunces',serif; font-weight:600; margin:0 0 8px; color:var(--text); }
+  .empty p { margin:0; font-size:14px; }
+  .item-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media (min-width:640px){.item-grid{grid-template-columns:repeat(3,1fr);}}
+  @media (min-width:900px){.item-grid{grid-template-columns:repeat(4,1fr);}}
+  .card { background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); overflow:hidden; cursor:pointer;
+    transition:transform 0.1s,border-color 0.15s; }
+  .card:active { transform:scale(0.98); }
+  .card-cover { width:100%; aspect-ratio:1; background:var(--bg-elev-2);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+  .card-cover img { width:100%; height:100%; object-fit:cover; }
+  .card-cover .placeholder { color:var(--text-faint); font-family:'Fraunces',serif; font-size:32px; }
+  .card-type-badge { position:absolute; top:6px; right:6px;
+    background:rgba(15,15,16,0.85); backdrop-filter:blur(4px); color:var(--accent);
+    padding:3px 8px; border-radius:4px; font-size:10px; font-weight:600;
+    letter-spacing:0.08em; text-transform:uppercase; }
+  .card-body { padding:10px 12px; }
+  .card-title { font-weight:600; font-size:14px; margin:0 0 2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .card-sub { font-size:12px; color:var(--text-dim); margin:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fab { position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom));
+    width:56px; height:56px; border-radius:50%; background:var(--accent); color:var(--bg);
+    border:none; box-shadow:0 6px 20px rgba(226,130,19,0.4); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:60; transition:transform 0.1s; }
+  .fab:active { transform:scale(0.92); }
+  .fab svg { width:26px; height:26px; }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    z-index:100; display:none; align-items:flex-end; justify-content:center; }
+  .modal-backdrop.open { display:flex; }
+  .modal { background:var(--bg); width:100%; max-width:600px; max-height:100vh;
+    border-radius:16px 16px 0 0; overflow-y:auto;
+    animation:slideUp 0.25s ease-out; padding-bottom:env(safe-area-inset-bottom); }
+  @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+  .modal-header { padding:12px 18px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; background:var(--bg); z-index:1; }
+  .modal-title { font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin:0; }
+  .modal-body { padding:14px 18px 18px; }
+  .field { margin-bottom:10px; }
+  .field-label { display:block; font-size:11px; font-weight:600;
+    color:var(--text-dim); margin-bottom:4px;
+    text-transform:uppercase; letter-spacing:0.06em; }
+  .field-label .req { color:var(--accent); }
+  .field-input,.field-textarea,.field-select { width:100%; background:var(--bg-elev);
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:8px 12px; color:var(--text); font-family:inherit; font-size:14px; outline:none; }
+  .field-input:focus,.field-textarea:focus,.field-select:focus { border-color:var(--accent); }
+  .field-textarea { resize:vertical; min-height:50px; }
+  .type-toggle { display:flex; gap:8px; margin-bottom:12px; }
+  .type-toggle button { flex:1; background:var(--bg-elev); border:1px solid var(--border);
+    color:var(--text-dim); padding:8px; border-radius:var(--radius);
+    font-family:inherit; font-weight:600; font-size:13px; cursor:pointer;
+    text-transform:uppercase; letter-spacing:0.06em; }
+  .type-toggle button.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .image-picker { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:12px; }
+  .image-slot { aspect-ratio:4/3; background:var(--bg-elev);
+    border:1px dashed var(--border); border-radius:var(--radius);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-direction:column;
+    color:var(--text-faint); font-size:11px; text-align:center; overflow:hidden; position:relative; }
+  .image-slot img { width:100%; height:100%; object-fit:cover; }
+  .image-slot .slot-label { position:absolute; bottom:4px; left:4px; right:4px;
+    background:rgba(15,15,16,0.85); color:var(--text);
+    padding:2px 6px; border-radius:4px; font-size:10px;
+    text-transform:uppercase; letter-spacing:0.06em; }
+  .image-slot svg { width:22px; height:22px; margin-bottom:2px; }
+  .image-actions { position:absolute; top:4px; right:4px; display:flex; gap:4px; }
+  .image-action-btn { background:rgba(15,15,16,0.85); color:var(--text); border:none;
+    border-radius:4px; width:24px; height:24px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .image-action-btn svg { width:12px; height:12px; margin:0; }
+  .title-field-wrap { position:relative; }
+  .autocomplete-list { position:absolute; top:calc(100% + 4px); left:0; right:0;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius);
+    max-height:320px; overflow-y:auto; z-index:5; box-shadow:var(--shadow); display:none; }
+  .autocomplete-list.open { display:block; }
+  .autocomplete-item { display:flex; align-items:center; gap:10px; padding:8px 10px;
+    cursor:pointer; border-bottom:1px solid var(--border); }
+  .autocomplete-item:last-child { border-bottom:none; }
+  .autocomplete-item:active,.autocomplete-item:hover { background:var(--bg-elev-2); }
+  .autocomplete-thumb { width:42px; height:42px; border-radius:4px;
+    background:var(--bg-elev-2); flex-shrink:0; object-fit:cover;
+    display:flex; align-items:center; justify-content:center; color:var(--text-faint); font-family:'Fraunces',serif; }
+  .autocomplete-text { flex:1; min-width:0; }
+  .autocomplete-title { font-size:14px; font-weight:500; color:var(--text);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .autocomplete-sub { font-size:12px; color:var(--text-dim);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .autocomplete-status { padding:10px; text-align:center; color:var(--text-dim); font-size:13px; }
+  .barcode-row { display:flex; gap:8px; }
+  .barcode-row .field-input { flex:1; }
+  .barcode-btn { background:var(--bg-elev); border:1px solid var(--border); color:var(--text);
+    padding:0 14px; border-radius:var(--radius); cursor:pointer; font-family:inherit;
+    font-size:13px; font-weight:500; white-space:nowrap;
+    display:flex; align-items:center; gap:6px; }
+  .barcode-btn:active { background:var(--bg-elev-2); }
+  .barcode-btn svg { width:16px; height:16px; }
+  .btn-row { display:flex; gap:10px; margin-top:14px; }
+  .btn { flex:1; padding:11px; border-radius:var(--radius);
+    font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    border:1px solid transparent; }
+  .btn-primary { background:var(--accent); color:var(--bg); }
+  .btn-secondary { background:var(--bg-elev); color:var(--text); border-color:var(--border); }
+  .btn-danger { background:var(--danger); color:white; }
+  .btn:active { transform:scale(0.98); }
+  .detail-cover { width:100%; max-width:360px; aspect-ratio:1; margin:0 auto 20px;
+    background:var(--bg-elev); border-radius:var(--radius); overflow:hidden;
+    display:flex; align-items:center; justify-content:center; }
+  .detail-cover img { width:100%; height:100%; object-fit:cover; }
+  .detail-secondary-img { width:100%; max-width:240px; aspect-ratio:1; margin:0 auto 20px;
+    background:var(--bg-elev); border-radius:var(--radius); overflow:hidden; }
+  .detail-secondary-img img { width:100%; height:100%; object-fit:cover; }
+  .detail-title { font-family:'Fraunces',serif; font-size:26px; font-weight:600;
+    margin:0 0 4px; line-height:1.2; }
+  .detail-artist { color:var(--text-dim); font-size:16px; margin:0 0 16px; }
+  .detail-meta { display:grid; gap:12px;
+    background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+  .meta-row { display:flex; justify-content:space-between;
+    align-items:baseline; gap:12px; font-size:14px; }
+  .meta-row .meta-label { color:var(--text-dim); font-size:12px;
+    text-transform:uppercase; letter-spacing:0.06em; font-weight:600; }
+  .meta-row .meta-value { text-align:right; word-break:break-word; }
+  .note-block { background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:16px;
+    white-space:pre-wrap; font-size:14px; line-height:1.5; }
+  .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%);
+    background:var(--bg-elev-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 18px; border-radius:var(--radius); font-size:13px;
+    z-index:200; box-shadow:var(--shadow); animation:toastIn 0.2s; max-width:90vw; }
+  .toast.success { border-color:var(--success); }
+  .toast.error { border-color:var(--danger); }
+  @keyframes toastIn { from{opacity:0;transform:translate(-50%,-10px);}
+                       to{opacity:1;transform:translate(-50%,0);} }
+  .sort-menu { background:var(--bg-elev); border-radius:var(--radius); padding:4px; width:100%; }
+  .sort-option { width:100%; background:transparent; border:none; color:var(--text);
+    padding:12px; text-align:left; cursor:pointer; border-radius:6px;
+    font-family:inherit; font-size:14px;
+    display:flex; justify-content:space-between; align-items:center; }
+  .sort-option:active { background:var(--bg-elev-2); }
+  .sort-option .check { color:var(--accent); }
+  #scannerVideo { width:100%; max-height:60vh; border-radius:var(--radius); background:black; }
+  .scanner-info { text-align:center; color:var(--text-dim); font-size:13px; margin:12px 0; }
+  .settings-list { list-style:none; padding:0; margin:0; }
+  .settings-item { background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:10px; }
+  .settings-item h4 { margin:0 0 6px; font-size:14px; font-weight:600; }
+  .settings-item p { margin:0 0 10px; font-size:13px; color:var(--text-dim); }
+  .settings-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+  .settings-buttons .btn { flex:0 1 auto; padding:8px 14px; font-size:13px; }
+  details.advanced summary { cursor:pointer; padding:14px;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius);
+    list-style:none; font-size:14px; font-weight:600;
+    display:flex; justify-content:space-between; align-items:center; }
+  details.advanced summary::-webkit-details-marker { display:none; }
+  details.advanced summary::after { content:'▾'; color:var(--text-dim); transition:transform 0.15s; }
+  details.advanced[open] summary::after { transform:rotate(180deg); }
+  details.advanced { margin-bottom:10px; }
+  details.advanced > div { background:var(--bg-elev); border:1px solid var(--border);
+    border-top:none; border-radius:0 0 var(--radius) var(--radius);
+    padding:14px; margin-top:-1px; }
+  .status-pill { display:inline-block; font-size:11px; padding:2px 8px;
+    border-radius:10px; border:1px solid currentColor; }
+  .status-pill.connected { color:var(--success); }
+  .status-pill.disconnected { color:var(--text-faint); }
+  .hidden-input { display:none; }
+  .spinner { width:16px; height:16px;
+    border:2px solid var(--border); border-top-color:var(--accent);
+    border-radius:50%; animation:spin 0.7s linear infinite;
+    display:inline-block; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .wizard-step { display:none; }
+  .wizard-step.active { display:block; }
+  .wizard-progress { display:flex; gap:4px; margin-bottom:16px; }
+  .wizard-dot { flex:1; height:3px; background:var(--bg-elev-2); border-radius:2px; }
+  .wizard-dot.active { background:var(--accent); }
+  .wizard-hint { font-size:12px; color:var(--text-faint); margin:6px 0 12px; line-height:1.5; }
+  .wizard-hint code { background:var(--bg-elev-2); padding:1px 5px; border-radius:3px;
+    font-family:'JetBrains Mono',monospace; font-size:11px; }
 </style>
 </head>
 <body>
@@ -723,14 +252,12 @@
 <header class="app-header">
   <div class="brand">the j stash<span>.</span></div>
   <div class="header-actions">
+    <div class="sync-indicator" id="syncIndicator" title="Cloud sync status">
+      <span class="sync-dot"></span><span id="syncText">…</span>
+    </div>
     <button class="icon-btn" id="quickScanBtn" title="Scan barcode" aria-label="Scan barcode">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
-      </svg>
-    </button>
-    <button class="icon-btn" id="headerBackupBtn" title="Back up now" aria-label="Back up now">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
       </svg>
     </button>
     <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
@@ -759,10 +286,7 @@
 </div>
 
 <main id="mainContent">
-  <div class="empty">
-    <h3>No entries yet</h3>
-    <p>Tap the + button to add your first record or DVD.</p>
-  </div>
+  <div class="empty"><h3>Loading…</h3></div>
 </main>
 
 <button class="fab" id="addBtn" aria-label="Add new entry">
@@ -771,15 +295,75 @@
   </svg>
 </button>
 
-<!-- Add/Edit Modal -->
+<div class="modal-backdrop" id="wizardModal">
+  <div class="modal">
+    <div class="modal-header"><h2 class="modal-title">Set Up The J Stash</h2></div>
+    <div class="modal-body">
+      <div class="wizard-progress">
+        <div class="wizard-dot active" data-step="1"></div>
+        <div class="wizard-dot" data-step="2"></div>
+        <div class="wizard-dot" data-step="3"></div>
+      </div>
+      <div class="wizard-step active" data-step="1">
+        <p>Your data lives in a private GitHub repo. This way it survives anything Brave does to local storage.</p>
+        <p style="margin-top:12px;">You'll need:</p>
+        <ul style="font-size:13px; color:var(--text-dim); padding-left:18px; line-height:1.8;">
+          <li>A private GitHub repo for your data (separate from the app)</li>
+          <li>A fine-grained Personal Access Token with Contents read/write access to that repo</li>
+        </ul>
+        <p class="wizard-hint">No data yet? Just create an empty private repo — the app will populate it.</p>
+        <div class="btn-row"><button class="btn btn-primary" id="wizNext1">Continue</button></div>
+      </div>
+      <div class="wizard-step" data-step="2">
+        <p>Paste your GitHub access info:</p>
+        <div class="field" style="margin-top:10px;">
+          <label class="field-label">GitHub Username (Owner) <span class="req">*</span></label>
+          <input type="text" class="field-input" id="wizOwner" placeholder="e.g. jmile06">
+        </div>
+        <div class="field">
+          <label class="field-label">Repository Name <span class="req">*</span></label>
+          <input type="text" class="field-input" id="wizRepo" placeholder="e.g. TheJStashData">
+        </div>
+        <div class="field">
+          <label class="field-label">Branch</label>
+          <input type="text" class="field-input" id="wizBranch" placeholder="main" value="main">
+        </div>
+        <div class="field">
+          <label class="field-label">Fine-grained Personal Access Token <span class="req">*</span></label>
+          <input type="password" class="field-input" id="wizToken" placeholder="github_pat_...">
+        </div>
+        <p class="wizard-hint">Token must have <code>Contents: Read &amp; Write</code> for this repo. Get one at github.com/settings/tokens?type=beta</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="wizBack2">Back</button>
+          <button class="btn btn-primary" id="wizNext2">Test &amp; Continue</button>
+        </div>
+      </div>
+      <div class="wizard-step" data-step="3">
+        <p>Connection looks good. Optionally add API tokens for richer lookups (you can skip and add later from Settings → Advanced):</p>
+        <div class="field" style="margin-top:10px;">
+          <label class="field-label">Discogs Token (for vinyl)</label>
+          <input type="text" class="field-input" id="wizDiscogs" placeholder="Get from discogs.com/settings/developers">
+        </div>
+        <div class="field">
+          <label class="field-label">TMDB API Key (for DVD title search)</label>
+          <input type="text" class="field-input" id="wizTmdb" placeholder="Get from themoviedb.org/settings/api">
+        </div>
+        <p class="wizard-hint">Tokens save to your config file in GitHub. They persist across Brave wipes.</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="wizBack3">Back</button>
+          <button class="btn btn-primary" id="wizFinish">Finish Setup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="formModal">
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title" id="formTitle">New Entry</h2>
       <button class="icon-btn" id="closeForm" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
@@ -787,27 +371,20 @@
         <button id="typeDvd" data-type="dvd" class="active">DVD</button>
         <button id="typeVinyl" data-type="vinyl">Vinyl</button>
       </div>
-
       <div class="image-picker">
         <div class="image-slot" id="coverSlot" data-slot="cover">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="9" cy="9" r="2"/>
-            <path d="M21 15l-5-5L5 21"/>
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
           </svg>
-          <span>Cover</span>
-          <span class="slot-label">Cover</span>
+          <span>Cover</span><span class="slot-label">Cover</span>
         </div>
         <div class="image-slot" id="secondarySlot" data-slot="secondary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10"/>
-            <circle cx="12" cy="12" r="3"/>
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
           </svg>
-          <span id="secondaryLabel">Disc (optional)</span>
-          <span class="slot-label" id="secondarySlotLabel">Disc</span>
+          <span>Disc (optional)</span><span class="slot-label">Disc</span>
         </div>
       </div>
-
       <div class="field">
         <label class="field-label">Barcode</label>
         <div class="barcode-row">
@@ -815,19 +392,15 @@
           <button class="barcode-btn" id="scanBtn" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
-            </svg>
-            Scan
+            </svg>Scan
           </button>
           <button class="barcode-btn" id="lookupBtn" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <span id="lookupBtnLabel">Lookup</span>
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg><span id="lookupBtnLabel">Lookup</span>
           </button>
         </div>
       </div>
-
       <div class="field">
         <label class="field-label" id="titleLabel">Title <span class="req">*</span></label>
         <div class="title-field-wrap">
@@ -835,22 +408,18 @@
           <div class="autocomplete-list" id="titleAutocomplete" role="listbox"></div>
         </div>
       </div>
-
       <div class="field" id="artistField" style="display:none;">
         <label class="field-label">Artist <span class="req">*</span></label>
         <input type="text" class="field-input" id="fldArtist">
       </div>
-
       <div class="field">
         <label class="field-label">Genre</label>
         <input type="text" class="field-input" id="fldGenre" placeholder="e.g. Jazz, Action, Comedy">
       </div>
-
       <div class="field">
         <label class="field-label">Note</label>
         <textarea class="field-textarea" id="fldNote" placeholder="Edition, condition, where you bought it..."></textarea>
       </div>
-
       <div class="btn-row">
         <button class="btn btn-secondary" id="cancelBtn" type="button">Cancel</button>
         <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
@@ -859,159 +428,103 @@
   </div>
 </div>
 
-<!-- Detail Modal -->
 <div class="modal-backdrop" id="detailModal">
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title">Details</h2>
       <button class="icon-btn" id="closeDetail" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body" id="detailBody"></div>
   </div>
 </div>
 
-<!-- Sort Modal -->
 <div class="modal-backdrop" id="sortModal">
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title">Sort by</h2>
       <button class="icon-btn" id="closeSort" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="modal-body">
-      <div class="sort-menu" id="sortMenu"></div>
-    </div>
+    <div class="modal-body"><div class="sort-menu" id="sortMenu"></div></div>
   </div>
 </div>
 
-<!-- Settings Modal -->
 <div class="modal-backdrop" id="settingsModal">
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title">Settings</h2>
       <button class="icon-btn" id="closeSettings" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
       <ul class="settings-list">
         <li class="settings-item">
-          <h4>Discogs API Token</h4>
-          <p>Required for vinyl barcode and title lookups. Get a free token at discogs.com/settings/developers.</p>
-          <input type="text" class="field-input" id="discogsToken" placeholder="Paste token here">
+          <h4>Cloud Sync</h4>
+          <p id="syncStatus">Status: <span class="status-pill disconnected">Checking…</span></p>
+          <p id="syncDetails" style="margin-top:6px; font-size:12px; color:var(--text-faint);"></p>
           <div class="settings-buttons" style="margin-top:8px;">
-            <button class="btn btn-primary" id="saveTokenBtn">Save Token</button>
+            <button class="btn btn-secondary" id="pullNowBtn">Pull from GitHub</button>
+            <button class="btn btn-secondary" id="pushNowBtn">Push to GitHub</button>
           </div>
         </li>
-        <li class="settings-item">
-          <h4>TMDB API Key</h4>
-          <p>Optional. Enables DVD title autocomplete with covers, year, and genre. Get a free key at themoviedb.org/settings/api (sign up, then request an API key, "Developer" type, takes ~1 minute).</p>
-          <input type="text" class="field-input" id="tmdbToken" placeholder="Paste API Key (v3 auth)">
-          <div class="settings-buttons" style="margin-top:8px;">
-            <button class="btn btn-primary" id="saveTmdbBtn">Save Key</button>
-          </div>
-        </li>
-        <li class="settings-item">
-          <h4>Cloud Auto-Backup</h4>
-          <p>Sign in once. App silently overwrites <strong>the_j_stash.json</strong> in your cloud drive on every save, edit, and delete. Restore in one tap if your device storage is ever wiped.</p>
-          <p id="backupCloudStatus" style="margin-top:6px; font-size:12px; color:var(--text-faint);">Not connected.</p>
-
-          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-            <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">Google Drive</h5>
-            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Paste your Google OAuth Client ID and Client Secret (both required by Google's token endpoint even with PKCE).</p>
-            <input type="text" class="field-input" id="googleClientId" placeholder="Client ID: 123456789-abc.apps.googleusercontent.com" style="margin-bottom:6px;">
-            <input type="password" class="field-input" id="googleClientSecret" placeholder="Client Secret: GOCSPX-..." style="margin-bottom:6px;">
-            <div class="settings-buttons">
-              <button class="btn btn-secondary" id="saveGoogleClientBtn">Save</button>
-              <button class="btn btn-primary" id="connectGoogleBtn">Connect Google Drive</button>
+        <details class="advanced">
+          <summary>Advanced — API Tokens &amp; Connection</summary>
+          <div>
+            <p style="font-size:12px; color:var(--text-faint); margin:0 0 12px;">These save to your private GitHub config file, not local storage. They persist across browser wipes.</p>
+            <div class="field">
+              <label class="field-label">Discogs Token</label>
+              <input type="text" class="field-input" id="advDiscogs" placeholder="(empty)">
+            </div>
+            <div class="field">
+              <label class="field-label">TMDB API Key</label>
+              <input type="text" class="field-input" id="advTmdb" placeholder="(empty)">
+            </div>
+            <div class="btn-row" style="margin-top:0;">
+              <button class="btn btn-primary" id="saveAdvTokensBtn">Save to GitHub</button>
+            </div>
+            <hr style="border:none; border-top:1px solid var(--border); margin:14px 0;">
+            <p style="font-size:12px; color:var(--text-faint); margin:0 0 8px;">GitHub connection details (stored locally; required after browser wipe):</p>
+            <div class="field">
+              <label class="field-label">Owner</label>
+              <input type="text" class="field-input" id="advOwner">
+            </div>
+            <div class="field">
+              <label class="field-label">Repo</label>
+              <input type="text" class="field-input" id="advRepo">
+            </div>
+            <div class="field">
+              <label class="field-label">Branch</label>
+              <input type="text" class="field-input" id="advBranch">
+            </div>
+            <div class="field">
+              <label class="field-label">Access Token</label>
+              <input type="password" class="field-input" id="advToken">
+            </div>
+            <div class="btn-row" style="margin-top:0;">
+              <button class="btn btn-secondary" id="saveGhConnBtn">Save Connection</button>
             </div>
           </div>
-
-          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-            <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">OneDrive</h5>
-            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Paste a Microsoft Application (client) ID.</p>
-            <input type="text" class="field-input" id="onedriveClientId" placeholder="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" style="margin-bottom:6px;">
-            <div class="settings-buttons">
-              <button class="btn btn-secondary" id="saveOneDriveClientBtn">Save ID</button>
-              <button class="btn btn-primary" id="connectOneDriveBtn">Connect OneDrive</button>
-            </div>
-          </div>
-
-          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-            <h5 style="margin:0 0 6px; font-size:13px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em;">GitHub</h5>
-            <p style="font-size:12px; color:var(--text-dim); margin:0 0 6px;">Stores backups as commits in a repo. Use a fine-grained Personal Access Token scoped to one repo with Contents: Read &amp; Write.</p>
-            <input type="password" class="field-input" id="githubToken" placeholder="github_pat_..." style="margin-bottom:6px;">
-            <input type="text" class="field-input" id="githubOwner" placeholder="Owner (your username)" style="margin-bottom:6px;">
-            <input type="text" class="field-input" id="githubRepo" placeholder="Repo name (e.g. TheJStash)" style="margin-bottom:6px;">
-            <input type="text" class="field-input" id="githubBranch" placeholder="Branch (default: main)" value="main" style="margin-bottom:6px;">
-            <div class="settings-buttons">
-              <button class="btn btn-secondary" id="saveGithubBtn">Save Config</button>
-              <button class="btn btn-primary" id="connectGithubBtn">Connect GitHub</button>
-            </div>
-          </div>
-
-          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-            <div class="settings-buttons">
-              <button class="btn btn-secondary" id="manualBackupNowBtn">Back Up Now</button>
-              <button class="btn btn-secondary" id="restoreFromCloudBtn">Restore from Cloud</button>
-              <button class="btn btn-danger" id="disconnectCloudBtn">Disconnect</button>
-            </div>
-          </div>
-        </li>
-        <li class="settings-item">
-          <h4>Export Backup</h4>
-          <p>Saves files to your Downloads folder.</p>
-          <div class="settings-buttons">
-            <button class="btn btn-secondary" id="exportJsonBtn">JSON</button>
-            <button class="btn btn-secondary" id="exportCsvBtn">CSV</button>
-            <button class="btn btn-primary" id="exportZipBtn">Full Backup (ZIP)</button>
-          </div>
-        </li>
-        <li class="settings-item">
-          <h4>Import Backup</h4>
-          <p>Restore from a JSON backup. Existing entries with the same ID are replaced.</p>
-          <div class="settings-buttons">
-            <button class="btn btn-secondary" id="importBtn">Import JSON</button>
-            <input type="file" id="importFile" accept="application/json,application/zip" class="hidden-input">
-          </div>
-        </li>
-        <li class="settings-item">
-          <h4>Erase All Data</h4>
-          <p>Permanently deletes every entry in your local database. This cannot be undone.</p>
-          <div class="settings-buttons">
-            <button class="btn btn-danger" id="eraseBtn">Erase Everything</button>
-          </div>
-        </li>
+        </details>
         <li class="settings-item">
           <h4>About</h4>
-          <p>The J Stash runs entirely on your device. No accounts, no servers. Your data lives in browser storage; backups are in your control. Add to home screen for full app experience.</p>
+          <p>The J Stash. Your library and config live in a private GitHub repo as the source of truth. The local app reads on launch and writes back on every change.</p>
         </li>
       </ul>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="settingsDoneBtn" type="button">Done</button>
-      </div>
+      <div class="btn-row"><button class="btn btn-primary" id="settingsDoneBtn" type="button">Done</button></div>
     </div>
   </div>
 </div>
 
-<!-- Scanner Modal -->
 <div class="modal-backdrop" id="scannerModal">
   <div class="modal">
     <div class="modal-header">
       <h2 class="modal-title">Scan Barcode</h2>
       <button class="icon-btn" id="closeScanner" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
@@ -1021,120 +534,61 @@
   </div>
 </div>
 
-<!-- Hidden image inputs -->
 <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden-input">
 <input type="file" id="galleryInput" accept="image/*" class="hidden-input">
 
 <script>
-/* ==========================================================
-   STACKS — Vinyl & DVD Catalog (PWA)
-   Single-file app. All data is local (IndexedDB).
-   ========================================================== */
+/* The J Stash — Cloud-First (GitHub source of truth, localStorage cache) */
 
-// ---------- IndexedDB wrapper ----------
-const DB_NAME = 'stacks_db';
-const DB_VERSION = 2; // bumped from 1 to add 'meta' store for backup handle
-const STORE = 'items';
-const META_STORE = 'meta';
-let dbPromise = null;
-
-function openDB() {
-  if (dbPromise) return dbPromise;
-  dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        const store = db.createObjectStore(STORE, { keyPath: 'id' });
-        store.createIndex('type', 'type', { unique: false });
-        store.createIndex('addedAt', 'addedAt', { unique: false });
-      }
-      if (!db.objectStoreNames.contains(META_STORE)) {
-        // Stores singletons keyed by string. Used to persist the auto-backup
-        // directory handle, which is a real FileSystemDirectoryHandle object
-        // that IndexedDB knows how to structured-clone.
-        db.createObjectStore(META_STORE);
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  return dbPromise;
+const LIBRARY_PATH = 'data/library.json';
+const CONFIG_PATH = 'data/config.json';
+const LS_KEYS = {
+  ghToken: 'jstash_gh_token',
+  ghOwner: 'jstash_gh_owner',
+  ghRepo: 'jstash_gh_repo',
+  ghBranch: 'jstash_gh_branch',
+  libraryCache: 'jstash_library_cache',
+  configCache: 'jstash_config_cache',
+  librarySha: 'jstash_library_sha',
+  configSha: 'jstash_config_sha',
+};
+function ghCfg() {
+  return {
+    token: localStorage.getItem(LS_KEYS.ghToken) || '',
+    owner: localStorage.getItem(LS_KEYS.ghOwner) || '',
+    repo: localStorage.getItem(LS_KEYS.ghRepo) || '',
+    branch: localStorage.getItem(LS_KEYS.ghBranch) || 'main',
+  };
+}
+function setGhCfg(o) {
+  if (o.token != null) localStorage.setItem(LS_KEYS.ghToken, o.token);
+  if (o.owner != null) localStorage.setItem(LS_KEYS.ghOwner, o.owner);
+  if (o.repo != null) localStorage.setItem(LS_KEYS.ghRepo, o.repo);
+  if (o.branch != null) localStorage.setItem(LS_KEYS.ghBranch, o.branch);
+}
+function isConfigured() {
+  const c = ghCfg();
+  return !!(c.token && c.owner && c.repo);
 }
 
-async function metaGet(key) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(META_STORE, 'readonly');
-    const req = tx.objectStore(META_STORE).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function metaSet(key, value) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(META_STORE, 'readwrite');
-    tx.objectStore(META_STORE).put(value, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-async function metaDelete(key) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(META_STORE, 'readwrite');
-    tx.objectStore(META_STORE).delete(key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
+const state = {
+  items: [],
+  config: { discogs_token: '', tmdb_token: '' },
+  tab: 'all', search: '', sortKey: 'addedAt', sortDir: 'desc',
+  editingId: null, formType: 'dvd',
+  formImages: { cover: null, secondary: null },
+  imageTarget: null,
+  scannerActive: false, scannerStream: null, scannerDetector: null,
+  scannerLoop: null, scannerReady: false, scannerMode: 'inForm',
+  syncStatus: 'init', syncErrorMessage: '',
+};
 
-async function dbGetAll() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function dbPut(item) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(item);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-async function dbDelete(id) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-async function dbClear() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).clear();
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-// ---------- Utilities ----------
 function uid() {
   return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function fmtDate(ts) {
   if (!ts) return '';
-  const d = new Date(ts);
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 function escapeHtml(s) {
   if (s == null) return '';
@@ -1142,7 +596,6 @@ function escapeHtml(s) {
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[ch]));
 }
-
 function showToast(msg, type='') {
   const t = document.createElement('div');
   t.className = 'toast' + (type ? ' ' + type : '');
@@ -1150,9 +603,7 @@ function showToast(msg, type='') {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2600);
 }
-
-// Compress an image File to a JPEG dataURL, max width preserving aspect.
-function compressImage(file, maxDim = 1000, quality = 0.85) {
+function compressImage(file, maxDim = 1100, quality = 0.85) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -1160,17 +611,11 @@ function compressImage(file, maxDim = 1000, quality = 0.85) {
       img.onload = () => {
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
-          if (width >= height) {
-            height = Math.round(height * (maxDim / width));
-            width = maxDim;
-          } else {
-            width = Math.round(width * (maxDim / height));
-            height = maxDim;
-          }
+          if (width >= height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+          else { width = Math.round(width * (maxDim / height)); height = maxDim; }
         }
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = width; canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL('image/jpeg', quality));
@@ -1182,8 +627,6 @@ function compressImage(file, maxDim = 1000, quality = 0.85) {
     reader.readAsDataURL(file);
   });
 }
-
-// Fetch image URL and convert to compressed dataURL (for online lookup covers).
 async function urlToCompressedDataURL(url, maxDim = 1000, quality = 0.85) {
   try {
     const resp = await fetch(url);
@@ -1191,34 +634,197 @@ async function urlToCompressedDataURL(url, maxDim = 1000, quality = 0.85) {
     const blob = await resp.blob();
     const file = new File([blob], 'cover.jpg', { type: blob.type || 'image/jpeg' });
     return await compressImage(file, maxDim, quality);
-  } catch (e) {
-    return null;
+  } catch (e) { return null; }
+}
+
+// ----- GitHub API -----
+async function ghReadFile(path) {
+  const c = ghCfg();
+  const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}?ref=${encodeURIComponent(c.branch)}`;
+  const resp = await fetch(url, {
+    headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json' },
+  });
+  if (resp.status === 404) return { exists: false, content: null, sha: null };
+  if (!resp.ok) {
+    const errTxt = await resp.text();
+    throw new Error(`GitHub read ${resp.status}: ${errTxt.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+  return { exists: true, content, sha: data.sha };
+}
+async function ghWriteFile(path, content, sha, message) {
+  const c = ghCfg();
+  const b64 = btoa(unescape(encodeURIComponent(content)));
+  const body = { message: message || `Update ${path}`, content: b64, branch: c.branch };
+  if (sha) body.sha = sha;
+  const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
+  const resp = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Bearer ' + c.token,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const errTxt = await resp.text();
+    throw new Error(`GitHub write ${resp.status}: ${errTxt.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  return data.content && data.content.sha;
+}
+
+// ----- Sync UI -----
+function setSyncStatus(status, message) {
+  state.syncStatus = status;
+  state.syncErrorMessage = message || '';
+  const ind = document.getElementById('syncIndicator');
+  const text = document.getElementById('syncText');
+  if (!ind || !text) return;
+  ind.classList.remove('syncing', 'ok', 'error');
+  switch (status) {
+    case 'syncing': ind.classList.add('syncing'); text.textContent = 'Sync'; break;
+    case 'ok': ind.classList.add('ok'); text.textContent = 'Synced'; break;
+    case 'error': ind.classList.add('error'); text.textContent = 'Sync error'; break;
+    case 'offline': ind.classList.add('error'); text.textContent = 'Offline'; break;
+    default: text.textContent = '…';
+  }
+  refreshSettingsSyncUI();
+}
+function refreshSettingsSyncUI() {
+  const statusEl = document.getElementById('syncStatus');
+  const detailsEl = document.getElementById('syncDetails');
+  if (!statusEl) return;
+  const c = ghCfg();
+  const pillClass = state.syncStatus === 'ok' ? 'connected' : 'disconnected';
+  const pillText = state.syncStatus === 'ok' ? 'Connected' :
+                   state.syncStatus === 'syncing' ? 'Syncing…' :
+                   state.syncStatus === 'error' ? 'Error' :
+                   state.syncStatus === 'offline' ? 'Offline' : 'Not connected';
+  statusEl.innerHTML = `Status: <span class="status-pill ${pillClass}">${pillText}</span>`;
+  if (c.owner && c.repo) {
+    detailsEl.textContent = `Repo: ${c.owner}/${c.repo} (branch: ${c.branch})${state.syncErrorMessage ? ' — ' + state.syncErrorMessage : ''}`;
+  } else {
+    detailsEl.textContent = 'Not configured. Use the setup wizard or fill in details under Advanced.';
   }
 }
 
-// ---------- Application state ----------
-const state = {
-  items: [],
-  tab: 'all',
-  search: '',
-  sortKey: 'addedAt',
-  sortDir: 'desc',
-  editingId: null,
-  formType: 'dvd',
-  formImages: { cover: null, secondary: null }, // dataURLs
-  imageTarget: null, // 'cover' | 'secondary'
-  scannerActive: false,
-  scannerStream: null,
-  scannerDetector: null,
-  scannerLoop: null,
-};
+// ----- Local cache -----
+function loadLocalCache() {
+  try {
+    const lib = localStorage.getItem(LS_KEYS.libraryCache);
+    if (lib) {
+      const parsed = JSON.parse(lib);
+      if (parsed && Array.isArray(parsed.items)) state.items = parsed.items;
+    }
+    const cfg = localStorage.getItem(LS_KEYS.configCache);
+    if (cfg) {
+      const parsed = JSON.parse(cfg);
+      if (parsed) state.config = { ...state.config, ...parsed };
+    }
+  } catch (e) { console.warn('Cache load failed:', e); }
+}
+function saveLocalCache() {
+  try {
+    localStorage.setItem(LS_KEYS.libraryCache, JSON.stringify({ items: state.items }));
+    localStorage.setItem(LS_KEYS.configCache, JSON.stringify(state.config));
+  } catch (e) { console.warn('Cache save failed:', e); }
+}
 
-// ---------- Render ----------
+// ----- Cloud sync -----
+async function pullFromCloud() {
+  if (!isConfigured()) return;
+  setSyncStatus('syncing');
+  try {
+    const libResult = await ghReadFile(LIBRARY_PATH);
+    if (libResult.exists) {
+      const parsed = JSON.parse(libResult.content);
+      if (parsed && Array.isArray(parsed.items)) {
+        state.items = parsed.items;
+        localStorage.setItem(LS_KEYS.librarySha, libResult.sha);
+      }
+    } else {
+      state.items = [];
+      localStorage.removeItem(LS_KEYS.librarySha);
+    }
+    const cfgResult = await ghReadFile(CONFIG_PATH);
+    if (cfgResult.exists) {
+      const parsed = JSON.parse(cfgResult.content);
+      if (parsed) {
+        state.config = { ...state.config, ...parsed };
+        localStorage.setItem(LS_KEYS.configSha, cfgResult.sha);
+      }
+    } else {
+      localStorage.removeItem(LS_KEYS.configSha);
+    }
+    saveLocalCache();
+    setSyncStatus('ok');
+    renderAll();
+  } catch (err) {
+    console.error('Pull failed:', err);
+    setSyncStatus('error', err.message);
+    throw err;
+  }
+}
+
+let libraryPushTimer = null;
+function schedulePushLibrary() {
+  clearTimeout(libraryPushTimer);
+  libraryPushTimer = setTimeout(() => {
+    pushLibrary().catch(err => {
+      console.warn('Library push failed:', err);
+      setSyncStatus('error', err.message);
+    });
+  }, 2000);
+}
+async function pushLibrary() {
+  if (!isConfigured()) return;
+  setSyncStatus('syncing');
+  const payload = {
+    app: 'the_j_stash', version: 2,
+    exportedAt: new Date().toISOString(),
+    items: state.items,
+  };
+  try {
+    const sha = localStorage.getItem(LS_KEYS.librarySha);
+    const newSha = await ghWriteFile(LIBRARY_PATH,
+      JSON.stringify(payload, null, 2), sha,
+      `Library update: ${state.items.length} items`);
+    if (newSha) localStorage.setItem(LS_KEYS.librarySha, newSha);
+    saveLocalCache();
+    setSyncStatus('ok');
+  } catch (err) {
+    if (err.message.includes('409')) {
+      try { await pullFromCloud(); showToast('Pulled newer version from GitHub. Re-apply your changes.', 'error'); } catch {}
+    } else {
+      setSyncStatus('error', err.message);
+      showToast('Sync failed: ' + err.message, 'error');
+    }
+  }
+}
+async function pushConfig() {
+  if (!isConfigured()) return;
+  setSyncStatus('syncing');
+  try {
+    const sha = localStorage.getItem(LS_KEYS.configSha);
+    const newSha = await ghWriteFile(CONFIG_PATH,
+      JSON.stringify(state.config, null, 2), sha, 'Update config');
+    if (newSha) localStorage.setItem(LS_KEYS.configSha, newSha);
+    saveLocalCache();
+    setSyncStatus('ok');
+  } catch (err) {
+    setSyncStatus('error', err.message);
+    throw err;
+  }
+}
+
+// ----- Render -----
 function getFiltered() {
   let list = state.items;
   if (state.tab === 'dvd') list = list.filter(i => i.type === 'dvd');
   if (state.tab === 'vinyl') list = list.filter(i => i.type === 'vinyl');
-
   const q = state.search.trim().toLowerCase();
   if (q) {
     list = list.filter(i => {
@@ -1226,7 +832,6 @@ function getFiltered() {
       return fields.some(f => f && String(f).toLowerCase().includes(q));
     });
   }
-
   const dir = state.sortDir === 'asc' ? 1 : -1;
   const key = state.sortKey;
   list = [...list].sort((a, b) => {
@@ -1238,10 +843,8 @@ function getFiltered() {
     if (av > bv) return 1 * dir;
     return 0;
   });
-
   return list;
 }
-
 function renderCounts() {
   const dvds = state.items.filter(i => i.type === 'dvd').length;
   const vinyls = state.items.filter(i => i.type === 'vinyl').length;
@@ -1249,52 +852,35 @@ function renderCounts() {
   document.getElementById('countDvd').textContent = dvds;
   document.getElementById('countVinyl').textContent = vinyls;
 }
-
 function renderList() {
   const main = document.getElementById('mainContent');
   const items = getFiltered();
   if (items.length === 0) {
-    main.innerHTML = `
-      <div class="empty">
-        <h3>${state.search ? 'No matches' : 'Nothing here yet'}</h3>
-        <p>${state.search ? 'Try a different search.' : 'Tap the + button to add your first entry.'}</p>
-      </div>`;
+    main.innerHTML = `<div class="empty"><h3>${state.search ? 'No matches' : 'Nothing here yet'}</h3>
+      <p>${state.search ? 'Try a different search.' : 'Tap the + button to add your first entry.'}</p></div>`;
     return;
   }
   const grid = document.createElement('div');
   grid.className = 'item-grid';
   for (const it of items) {
     const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.id = it.id;
-    const cover = it.cover
-      ? `<img src="${it.cover}" alt="" loading="lazy">`
-      : `<span class="placeholder">${it.type === 'vinyl' ? '◉' : '▣'}</span>`;
-    const sub = it.type === 'vinyl'
-      ? escapeHtml(it.artist || '—')
-      : (it.genre ? escapeHtml(it.genre) : 'DVD');
-    card.innerHTML = `
-      <div class="card-cover">
-        ${cover}
-        <span class="card-type-badge">${it.type === 'vinyl' ? 'LP' : 'DVD'}</span>
-      </div>
-      <div class="card-body">
-        <p class="card-title">${escapeHtml(it.title || 'Untitled')}</p>
-        <p class="card-sub">${sub}</p>
-      </div>`;
+    card.className = 'card'; card.dataset.id = it.id;
+    const cover = it.cover ? `<img src="${it.cover}" alt="" loading="lazy">`
+                           : `<span class="placeholder">${it.type === 'vinyl' ? '◉' : '▣'}</span>`;
+    const sub = it.type === 'vinyl' ? escapeHtml(it.artist || '—')
+                                    : (it.genre ? escapeHtml(it.genre) : 'DVD');
+    card.innerHTML = `<div class="card-cover">${cover}
+      <span class="card-type-badge">${it.type === 'vinyl' ? 'LP' : 'DVD'}</span></div>
+      <div class="card-body"><p class="card-title">${escapeHtml(it.title || 'Untitled')}</p>
+      <p class="card-sub">${sub}</p></div>`;
     card.addEventListener('click', () => openDetail(it.id));
     grid.appendChild(card);
   }
   main.innerHTML = '';
   main.appendChild(grid);
 }
+function renderAll() { renderCounts(); renderList(); }
 
-function renderAll() {
-  renderCounts();
-  renderList();
-}
-
-// ---------- Tabs ----------
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -1304,7 +890,6 @@ document.querySelectorAll('.tab').forEach(btn => {
   });
 });
 
-// ---------- Search ----------
 const searchInput = document.getElementById('searchInput');
 let searchTimer = null;
 searchInput.addEventListener('input', () => {
@@ -1315,9 +900,8 @@ searchInput.addEventListener('input', () => {
   }, 120);
 });
 
-// ---------- Sort ----------
 const SORT_OPTIONS = [
-  { key: 'addedAt', label: 'Date added', dir: 'desc' },
+  { key: 'addedAt', label: 'Date added (newest)', dir: 'desc' },
   { key: 'addedAt', label: 'Date added (oldest)', dir: 'asc' },
   { key: 'title', label: 'Title (A→Z)', dir: 'asc' },
   { key: 'title', label: 'Title (Z→A)', dir: 'desc' },
@@ -1327,7 +911,6 @@ const SORT_OPTIONS = [
   { key: 'barcode', label: 'Barcode', dir: 'asc' },
   { key: 'type', label: 'Type', dir: 'asc' },
 ];
-
 function renderSortMenu() {
   const menu = document.getElementById('sortMenu');
   menu.innerHTML = '';
@@ -1337,34 +920,25 @@ function renderSortMenu() {
     const active = state.sortKey === opt.key && state.sortDir === opt.dir;
     btn.innerHTML = `<span>${opt.label}</span>${active ? '<span class="check">●</span>' : ''}`;
     btn.addEventListener('click', () => {
-      state.sortKey = opt.key;
-      state.sortDir = opt.dir;
-      closeModal('sortModal');
-      renderList();
+      state.sortKey = opt.key; state.sortDir = opt.dir;
+      closeModal('sortModal'); renderList();
     });
     menu.appendChild(btn);
   }
 }
-
 document.getElementById('sortBtn').addEventListener('click', () => {
-  renderSortMenu();
-  openModal('sortModal');
+  renderSortMenu(); openModal('sortModal');
 });
 document.getElementById('closeSort').addEventListener('click', () => closeModal('sortModal'));
 
-// ---------- Modal helpers ----------
-// Track open modals as history entries so the Android back button closes them.
+// ----- Modal helpers -----
 const modalStack = [];
-
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   document.body.style.overflow = 'hidden';
   modalStack.push(id);
-  // Push a history state so back button pops the modal instead of leaving the app.
   history.pushState({ modal: id }, '');
 }
-// Pass skipHistory=true when programmatically closing one modal to open another,
-// so we don't kick the new modal closed via a delayed popstate event.
 function closeModal(id, skipHistory) {
   const el = document.getElementById(id);
   if (!el || !el.classList.contains('open')) return;
@@ -1372,14 +946,11 @@ function closeModal(id, skipHistory) {
   const idx = modalStack.lastIndexOf(id);
   if (idx >= 0) modalStack.splice(idx, 1);
   if (modalStack.length === 0) document.body.style.overflow = '';
-  // Step history back only when the user initiated the close themselves.
   if (!closeModal._fromPop && !skipHistory) {
     try { history.back(); } catch {}
   }
 }
-
-// When user hits Android back, close the topmost modal instead of leaving.
-window.addEventListener('popstate', (e) => {
+window.addEventListener('popstate', () => {
   if (modalStack.length > 0) {
     const top = modalStack[modalStack.length - 1];
     closeModal._fromPop = true;
@@ -1387,14 +958,13 @@ window.addEventListener('popstate', (e) => {
     closeModal._fromPop = false;
   }
 });
-
 document.querySelectorAll('.modal-backdrop').forEach(bd => {
   bd.addEventListener('click', e => {
-    if (e.target === bd) closeModal(bd.id);
+    if (e.target === bd && bd.id !== 'wizardModal') closeModal(bd.id);
   });
 });
 
-// ---------- Form ----------
+// ----- Form -----
 const formModal = 'formModal';
 const fld = {
   title: document.getElementById('fldTitle'),
@@ -1409,7 +979,6 @@ function setFormType(type) {
   document.getElementById('typeDvd').classList.toggle('active', type === 'dvd');
   document.getElementById('typeVinyl').classList.toggle('active', type === 'vinyl');
   document.getElementById('artistField').style.display = type === 'vinyl' ? '' : 'none';
-  // Re-render the secondary slot so its label reflects the new type.
   refreshImageSlot('secondary');
 }
 document.getElementById('typeDvd').addEventListener('click', () => setFormType('dvd'));
@@ -1418,44 +987,31 @@ document.getElementById('typeVinyl').addEventListener('click', () => setFormType
 function clearForm() {
   state.editingId = null;
   state.formImages = { cover: null, secondary: null };
-  fld.title.value = '';
-  fld.artist.value = '';
-  fld.genre.value = '';
-  fld.barcode.value = '';
-  fld.note.value = '';
+  fld.title.value = ''; fld.artist.value = '';
+  fld.genre.value = ''; fld.barcode.value = ''; fld.note.value = '';
   setFormType('dvd');
-  refreshImageSlot('cover');
-  refreshImageSlot('secondary');
-  // Hide autocomplete if it was lingering
+  refreshImageSlot('cover'); refreshImageSlot('secondary');
   const ac = document.getElementById('titleAutocomplete');
   if (ac) { ac.classList.remove('open'); ac.innerHTML = ''; }
   document.getElementById('formTitle').textContent = 'New Entry';
 }
-
 function loadFormFromItem(item) {
   state.editingId = item.id;
   state.formImages = { cover: item.cover || null, secondary: item.secondary || null };
-  fld.title.value = item.title || '';
-  fld.artist.value = item.artist || '';
-  fld.genre.value = item.genre || '';
-  fld.barcode.value = item.barcode || '';
+  fld.title.value = item.title || ''; fld.artist.value = item.artist || '';
+  fld.genre.value = item.genre || ''; fld.barcode.value = item.barcode || '';
   fld.note.value = item.note || '';
   setFormType(item.type);
-  refreshImageSlot('cover');
-  refreshImageSlot('secondary');
+  refreshImageSlot('cover'); refreshImageSlot('secondary');
   document.getElementById('formTitle').textContent = 'Edit Entry';
 }
-
 function refreshImageSlot(slot) {
   const el = document.getElementById(slot === 'cover' ? 'coverSlot' : 'secondarySlot');
-  // Replace the node to drop any previously attached listeners.
   const fresh = el.cloneNode(false);
   el.parentNode.replaceChild(fresh, el);
-
   const img = state.formImages[slot];
   if (img) {
-    fresh.innerHTML = `
-      <img src="${img}" alt="">
+    fresh.innerHTML = `<img src="${img}" alt="">
       <div class="image-actions">
         <button class="image-action-btn" data-img-action="replace" data-slot="${slot}" type="button" aria-label="Replace">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.5-6.5L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.5L3 16"/><path d="M3 21v-5h5"/></svg>
@@ -1464,46 +1020,30 @@ function refreshImageSlot(slot) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <span class="slot-label">${slot === 'cover' ? 'Cover' : (state.formType === 'vinyl' ? 'Vinyl' : 'Disc')}</span>
-    `;
+      <span class="slot-label">${slot === 'cover' ? 'Cover' : (state.formType === 'vinyl' ? 'Vinyl' : 'Disc')}</span>`;
     fresh.querySelector('img').addEventListener('click', () => promptImagePick(slot));
     fresh.querySelectorAll('[data-img-action]').forEach(b => {
       b.addEventListener('click', e => {
         e.stopPropagation();
         if (b.dataset.imgAction === 'remove') {
-          state.formImages[slot] = null;
-          refreshImageSlot(slot);
-        } else {
-          promptImagePick(slot);
-        }
+          state.formImages[slot] = null; refreshImageSlot(slot);
+        } else { promptImagePick(slot); }
       });
     });
   } else {
     const isVinyl = state.formType === 'vinyl';
     const label = slot === 'cover' ? 'Cover' : (isVinyl ? 'Vinyl (optional)' : 'Disc (optional)');
     const slotLabel = slot === 'cover' ? 'Cover' : (isVinyl ? 'Vinyl' : 'Disc');
-    if (slot === 'cover') {
-      fresh.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
-        </svg>
-        <span>${label}</span>
-        <span class="slot-label">${slotLabel}</span>`;
-    } else {
-      fresh.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-        </svg>
-        <span>${label}</span>
-        <span class="slot-label">${slotLabel}</span>`;
-    }
+    fresh.innerHTML = slot === 'cover' ?
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
+      </svg><span>${label}</span><span class="slot-label">${slotLabel}</span>` :
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+      </svg><span>${label}</span><span class="slot-label">${slotLabel}</span>`;
     fresh.addEventListener('click', () => promptImagePick(slot));
   }
 }
-
-// (Slot click handlers are owned entirely by refreshImageSlot; no separate startup binding needed.)
-
-// Image source choice
 function promptImagePick(slot) {
   state.imageTarget = slot;
   const choice = window.prompt('Image source — type "c" for camera, "g" for gallery:', 'c');
@@ -1514,10 +1054,8 @@ function promptImagePick(slot) {
     document.getElementById('cameraInput').click();
   }
 }
-
 document.getElementById('cameraInput').addEventListener('change', handleImageInput);
 document.getElementById('galleryInput').addEventListener('change', handleImageInput);
-
 async function handleImageInput(e) {
   const file = e.target.files && e.target.files[0];
   e.target.value = '';
@@ -1527,64 +1065,48 @@ async function handleImageInput(e) {
     const dataUrl = await compressImage(file, 1100, 0.85);
     state.formImages[state.imageTarget] = dataUrl;
     refreshImageSlot(state.imageTarget);
-  } catch (err) {
-    showToast('Image error', 'error');
-  }
+  } catch (err) { showToast('Image error', 'error'); }
 }
 
-// Save / Cancel
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const title = fld.title.value.trim();
   if (!title) { showToast('Title required', 'error'); fld.title.focus(); return; }
   if (state.formType === 'vinyl' && !fld.artist.value.trim()) {
     showToast('Artist required for vinyl', 'error'); fld.artist.focus(); return;
   }
-  if (!state.formImages.cover) {
-    showToast('Cover image required', 'error'); return;
-  }
+  if (!state.formImages.cover) { showToast('Cover image required', 'error'); return; }
   const now = Date.now();
-  let id = state.editingId;
-  let addedAt = now;
+  let id = state.editingId; let addedAt = now;
   if (id) {
     const existing = state.items.find(i => i.id === id);
     if (existing) addedAt = existing.addedAt;
-  } else {
-    id = uid();
-  }
+  } else { id = uid(); }
   const item = {
-    id,
-    type: state.formType,
-    title,
+    id, type: state.formType, title,
     artist: state.formType === 'vinyl' ? fld.artist.value.trim() : '',
-    genre: fld.genre.value.trim(),
-    barcode: fld.barcode.value.trim(),
+    genre: fld.genre.value.trim(), barcode: fld.barcode.value.trim(),
     note: fld.note.value.trim(),
     cover: state.formImages.cover,
     secondary: state.formImages.secondary || null,
-    addedAt,
-    updatedAt: now,
+    addedAt, updatedAt: now,
   };
-  await dbPut(item);
-  // refresh state
   const idx = state.items.findIndex(i => i.id === id);
   if (idx >= 0) state.items[idx] = item; else state.items.push(item);
+  saveLocalCache();
   closeModal(formModal);
   renderAll();
-  updatePeakCount();
-  scheduleAutoBackup();
+  schedulePushLibrary();
   showToast(state.editingId ? 'Entry updated' : 'Entry saved', 'success');
   state.editingId = null;
 });
 document.getElementById('cancelBtn').addEventListener('click', () => closeModal(formModal));
 document.getElementById('closeForm').addEventListener('click', () => closeModal(formModal));
-
-// FAB
 document.getElementById('addBtn').addEventListener('click', () => {
-  clearForm();
-  openModal(formModal);
+  if (!isConfigured()) { showToast('Finish setup first', 'error'); openWizard(); return; }
+  clearForm(); openModal(formModal);
 });
 
-// ---------- Detail view ----------
+// ----- Detail -----
 function openDetail(id) {
   const it = state.items.find(x => x.id === id);
   if (!it) return;
@@ -1595,13 +1117,9 @@ function openDetail(id) {
   if (it.genre) meta.push({ label: 'Genre', value: it.genre });
   if (it.barcode) meta.push({ label: 'Barcode', value: it.barcode });
   meta.push({ label: 'Added', value: fmtDate(it.addedAt) });
-  if (it.updatedAt && it.updatedAt !== it.addedAt) {
-    meta.push({ label: 'Updated', value: fmtDate(it.updatedAt) });
-  }
+  if (it.updatedAt && it.updatedAt !== it.addedAt) meta.push({ label: 'Updated', value: fmtDate(it.updatedAt) });
   body.innerHTML = `
-    <div class="detail-cover">
-      ${it.cover ? `<img src="${it.cover}" alt="">` : ''}
-    </div>
+    <div class="detail-cover">${it.cover ? `<img src="${it.cover}" alt="">` : ''}</div>
     <h2 class="detail-title">${escapeHtml(it.title || 'Untitled')}</h2>
     ${it.type === 'vinyl' && it.artist ? `<p class="detail-artist">${escapeHtml(it.artist)}</p>` : ''}
     ${it.secondary ? `<div class="detail-secondary-img"><img src="${it.secondary}" alt=""></div>` : ''}
@@ -1612,39 +1130,33 @@ function openDetail(id) {
     <div class="btn-row">
       <button class="btn btn-danger" id="detailDeleteBtn">Delete</button>
       <button class="btn btn-secondary" id="detailEditBtn">Edit</button>
-    </div>
-  `;
+    </div>`;
   document.getElementById('detailEditBtn').addEventListener('click', () => {
-    closeModal('detailModal');
-    loadFormFromItem(it);
-    openModal(formModal);
+    closeModal('detailModal'); loadFormFromItem(it); openModal(formModal);
   });
   document.getElementById('detailDeleteBtn').addEventListener('click', async () => {
     if (!confirm(`Delete "${it.title}"? This cannot be undone.`)) return;
-    await dbDelete(it.id);
     state.items = state.items.filter(x => x.id !== it.id);
-    closeModal('detailModal');
-    renderAll();
-    updatePeakCount();
-    scheduleAutoBackup();
+    saveLocalCache();
+    closeModal('detailModal'); renderAll();
+    schedulePushLibrary();
     showToast('Deleted', 'success');
   });
   openModal('detailModal');
 }
 document.getElementById('closeDetail').addEventListener('click', () => closeModal('detailModal'));
 
-// ---------- Barcode scanning ----------
-// Two scan entry points:
-//   1. Header "quick scan" button -> scan, lookup, open prefilled form
-//   2. Scan button inside the form -> scan, lookup, fill the open form
-const scanBtn = document.getElementById('scanBtn');
-scanBtn.addEventListener('click', () => startScanner('inForm'));
-document.getElementById('quickScanBtn').addEventListener('click', () => startScanner('quickAdd'));
+// ----- Scanner -----
+document.getElementById('scanBtn').addEventListener('click', () => startScanner('inForm'));
+document.getElementById('quickScanBtn').addEventListener('click', () => {
+  if (!isConfigured()) { showToast('Finish setup first', 'error'); openWizard(); return; }
+  startScanner('quickAdd');
+});
 document.getElementById('closeScanner').addEventListener('click', stopScanner);
 
 async function startScanner(mode) {
   if (!('BarcodeDetector' in window)) {
-    showToast('Camera scanning not supported on this browser. Type the barcode instead.', 'error');
+    showToast('Camera scanning not supported. Type the barcode instead.', 'error');
     return;
   }
   state.scannerMode = mode || 'inForm';
@@ -1652,29 +1164,22 @@ async function startScanner(mode) {
     const supported = await BarcodeDetector.getSupportedFormats();
     const formats = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'].filter(f => supported.includes(f));
     state.scannerDetector = new BarcodeDetector({ formats: formats.length ? formats : supported });
-  } catch {
-    state.scannerDetector = new BarcodeDetector();
-  }
+  } catch { state.scannerDetector = new BarcodeDetector(); }
   try {
     state.scannerStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: 'environment' } }, audio: false
     });
-  } catch (err) {
-    showToast('Camera permission denied', 'error');
-    return;
-  }
+  } catch (err) { showToast('Camera permission denied', 'error'); return; }
   const video = document.getElementById('scannerVideo');
   video.srcObject = state.scannerStream;
   await video.play();
   openModal('scannerModal');
   state.scannerActive = true;
+  state.scannerReady = false;
+  setTimeout(() => { state.scannerReady = true; }, 700);
   document.getElementById('scannerInfo').textContent = 'Point camera at barcode';
-
   state.scannerLoop = async function loop() {
     if (!state.scannerActive) return;
-    // Don't try to detect until the video has actually been playing for a bit.
-    // Without this, BarcodeDetector can return a false hit on the very first
-    // pre-stream frame and we close before the user sees the camera at all.
     if (!state.scannerReady) {
       if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
       return;
@@ -1683,8 +1188,6 @@ async function startScanner(mode) {
       const codes = await state.scannerDetector.detect(video);
       if (codes && codes.length) {
         const code = (codes[0].rawValue || '').trim();
-        // Reject obvious garbage: empty, too short, or non-numeric where we expect digits.
-        // Real retail barcodes are 8-14 digits.
         if (code && code.length >= 8 && /^[0-9]+$/.test(code)) {
           state.scannerActive = false;
           await onBarcodeScanned(code, state.scannerMode);
@@ -1694,12 +1197,8 @@ async function startScanner(mode) {
     } catch {}
     if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
   };
-  // Allow ~700ms of live video before we trust detections.
-  state.scannerReady = false;
-  setTimeout(() => { state.scannerReady = true; }, 700);
   requestAnimationFrame(state.scannerLoop);
 }
-
 function stopScanner() {
   state.scannerActive = false;
   if (state.scannerStream) {
@@ -1708,164 +1207,90 @@ function stopScanner() {
   }
   closeModal('scannerModal');
 }
-
-// Called after a successful scan. Looks up the barcode, fills the form, then shows it.
 async function onBarcodeScanned(code, mode) {
-  // Update scanner UI to show progress, keep modal open while we look up.
   document.getElementById('scannerInfo').innerHTML = `Scanned: <strong>${escapeHtml(code)}</strong> — looking up...`;
-
-  // Try Discogs first (vinyl), then UPCitemdb (DVD). Whichever matches sets the type.
-  let result = null;
-  let detectedType = null;
+  let result = null; let detectedType = null;
   try {
-    const discogsResult = await tryDiscogs(code);
-    if (discogsResult) {
-      result = discogsResult;
-      detectedType = 'vinyl';
-    }
-  } catch (err) {
-    console.warn('Discogs lookup error:', err);
-  }
+    const d = await tryDiscogs(code);
+    if (d) { result = d; detectedType = 'vinyl'; }
+  } catch (e) {}
   if (!result) {
     try {
-      const dvdResult = await lookupDvd(code);
-      if (dvdResult) {
-        result = dvdResult;
-        detectedType = 'dvd';
-      }
-    } catch (err) {
-      console.warn('UPC lookup error:', err);
-    }
+      const d = await lookupDvd(code);
+      if (d) { result = d; detectedType = 'dvd'; }
+    } catch (e) {}
   }
-
-  // Close the scanner camera regardless of whether we found anything.
-  // Pass skipHistory because we're about to immediately open another modal.
   if (state.scannerStream) {
     state.scannerStream.getTracks().forEach(t => t.stop());
     state.scannerStream = null;
   }
   closeModal('scannerModal', true);
-
   if (mode === 'quickAdd') {
-    // Open a fresh form prefilled with whatever we got.
     clearForm();
     fld.barcode.value = code;
-    if (detectedType) {
-      setFormType(detectedType);
-    }
-    if (result) {
-      applyLookupToForm(result);
-    }
+    if (detectedType) setFormType(detectedType);
+    if (result) await applyLookupToForm(result);
     openModal(formModal);
-    if (result) {
-      showToast('Found and filled. Review and save.', 'success');
-    } else {
-      showToast('No match found. Fill in the rest manually.', 'error');
-    }
+    showToast(result ? 'Found and filled. Review and save.' : 'No match found. Fill in the rest manually.', result ? 'success' : 'error');
   } else {
-    // inForm: barcode field gets the scanned code; lookup result fills the rest.
     fld.barcode.value = code;
-    if (detectedType && detectedType !== state.formType) {
-      // The user opened the form as one type but the lookup says it's another.
-      // Switch silently to match what was actually scanned.
-      setFormType(detectedType);
-    }
-    if (result) {
-      applyLookupToForm(result);
-      showToast('Found and filled. Review and save.', 'success');
-    } else {
-      showToast(`Scanned: ${code}. No online match — fill in manually.`, 'error');
-    }
+    if (detectedType && detectedType !== state.formType) setFormType(detectedType);
+    if (result) { await applyLookupToForm(result); showToast('Found and filled. Review and save.', 'success'); }
+    else showToast(`Scanned: ${code}. No online match — fill in manually.`, 'error');
   }
 }
-
-// Apply a lookup result's fields and cover image into the form, without overwriting
-// anything the user has already typed in.
 async function applyLookupToForm(result) {
   if (result.title && !fld.title.value) fld.title.value = result.title;
   if (result.artist && !fld.artist.value) fld.artist.value = result.artist;
   if (result.genre && !fld.genre.value) fld.genre.value = result.genre;
   if (result.coverUrl && !state.formImages.cover) {
     const dataUrl = await urlToCompressedDataURL(result.coverUrl);
-    if (dataUrl) {
-      state.formImages.cover = dataUrl;
-      refreshImageSlot('cover');
-    }
+    if (dataUrl) { state.formImages.cover = dataUrl; refreshImageSlot('cover'); }
   }
 }
-
-// Wrapper that returns null silently if the user has no Discogs token yet
-// (so we can fall through to DVD lookup without surfacing an error toast mid-flow).
 async function tryDiscogs(code) {
-  const token = localStorage.getItem('discogs_token');
-  if (!token) return null;
+  if (!state.config.discogs_token) return null;
   return await lookupDiscogs(code);
 }
-
-// ---------- Online lookup ----------
 document.getElementById('lookupBtn').addEventListener('click', doManualLookup);
-
 async function doManualLookup() {
   const code = fld.barcode.value.trim();
   if (!code) { showToast('Enter or scan a barcode first', 'error'); return; }
-
   const lblBtn = document.getElementById('lookupBtn');
   const lblSpan = document.getElementById('lookupBtnLabel');
   lblBtn.disabled = true;
   lblSpan.innerHTML = '<span class="spinner"></span>';
-
   try {
-    // Try the user's currently selected type first, then fall back to the other.
-    let result = null;
-    let detectedType = null;
+    let result = null; let detectedType = null;
     if (state.formType === 'vinyl') {
       result = await tryDiscogs(code);
       if (result) detectedType = 'vinyl';
-      else {
-        result = await lookupDvd(code);
-        if (result) detectedType = 'dvd';
-      }
+      else { result = await lookupDvd(code); if (result) detectedType = 'dvd'; }
     } else {
       result = await lookupDvd(code);
       if (result) detectedType = 'dvd';
-      else {
-        result = await tryDiscogs(code);
-        if (result) detectedType = 'vinyl';
-      }
+      else { result = await tryDiscogs(code); if (result) detectedType = 'vinyl'; }
     }
-
-    if (!result) {
-      showToast('No match found. Fill in manually.', 'error');
-      return;
-    }
-    if (detectedType && detectedType !== state.formType) {
-      setFormType(detectedType);
-    }
+    if (!result) { showToast('No match found. Fill in manually.', 'error'); return; }
+    if (detectedType && detectedType !== state.formType) setFormType(detectedType);
     await applyLookupToForm(result);
     showToast('Lookup complete. Review and save.', 'success');
   } catch (err) {
-    showToast('Lookup failed: ' + (err.message || 'unknown error'), 'error');
+    showToast('Lookup failed: ' + (err.message || 'unknown'), 'error');
   } finally {
-    lblBtn.disabled = false;
-    lblSpan.textContent = 'Lookup';
+    lblBtn.disabled = false; lblSpan.textContent = 'Lookup';
   }
 }
-
 async function lookupDiscogs(code) {
-  const token = localStorage.getItem('discogs_token');
-  if (!token) {
-    showToast('Add a Discogs token in Settings first.', 'error');
-    return null;
-  }
+  const token = state.config.discogs_token;
+  if (!token) return null;
   const url = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
-  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/1.0' } });
+  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
   if (!resp.ok) throw new Error('Discogs ' + resp.status);
   const data = await resp.json();
   if (!data.results || !data.results.length) return null;
-  // Prefer release/master types
   const r = data.results.find(x => x.type === 'release') || data.results[0];
-  let title = r.title || '';
-  let artist = '';
+  let title = r.title || ''; let artist = '';
   if (title.includes(' - ')) {
     const parts = title.split(' - ');
     artist = parts[0].trim();
@@ -1874,99 +1299,60 @@ async function lookupDiscogs(code) {
   const genre = (r.genre && r.genre[0]) || (r.style && r.style[0]) || '';
   return { title, artist, genre, coverUrl: r.cover_image || r.thumb };
 }
-
 async function lookupDvd(code) {
-  // Free, no-auth endpoint
   const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(code)}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('UPC ' + resp.status);
   const data = await resp.json();
   if (!data.items || !data.items.length) return null;
   const item = data.items[0];
-  const title = item.title || '';
-  const coverUrl = (item.images && item.images[0]) || null;
-  // Genre rarely present from UPC db
-  return { title, artist: '', genre: '', coverUrl };
+  return { title: item.title || '', artist: '', genre: '',
+           coverUrl: (item.images && item.images[0]) || null };
 }
 
-// ---------- Title autocomplete ----------
-// When user types in the Title field, search the relevant API for matches
-// and show a dropdown to pick from. Picking applies title + cover + metadata.
+// ----- Title autocomplete -----
 const titleAcEl = document.getElementById('titleAutocomplete');
-let titleAcTimer = null;
-let titleAcSeq = 0; // monotonic counter to ignore stale responses
-
+let titleAcTimer = null; let titleAcSeq = 0;
 fld.title.addEventListener('input', () => {
   const q = fld.title.value.trim();
   clearTimeout(titleAcTimer);
-  if (q.length < 3) {
-    hideTitleAutocomplete();
-    return;
-  }
+  if (q.length < 3) { hideTitleAutocomplete(); return; }
   titleAcTimer = setTimeout(() => runTitleSearch(q), 350);
 });
-
-// Hide the dropdown when the field loses focus, but delay so taps on results register.
-fld.title.addEventListener('blur', () => {
-  setTimeout(hideTitleAutocomplete, 200);
-});
+fld.title.addEventListener('blur', () => setTimeout(hideTitleAutocomplete, 200));
 fld.title.addEventListener('focus', () => {
   const q = fld.title.value.trim();
   if (q.length >= 3) runTitleSearch(q);
 });
-
-function hideTitleAutocomplete() {
-  titleAcEl.classList.remove('open');
-  titleAcEl.innerHTML = '';
-}
-
+function hideTitleAutocomplete() { titleAcEl.classList.remove('open'); titleAcEl.innerHTML = ''; }
 function showTitleStatus(msg) {
   titleAcEl.innerHTML = `<div class="autocomplete-status">${escapeHtml(msg)}</div>`;
   titleAcEl.classList.add('open');
 }
-
 async function runTitleSearch(q) {
   const mySeq = ++titleAcSeq;
   showTitleStatus('Searching...');
   try {
-    let results = [];
-    if (state.formType === 'vinyl') {
-      results = await searchDiscogsByTitle(q);
-    } else {
-      results = await searchTmdbByTitle(q);
-    }
-    // Ignore stale responses from earlier keystrokes.
+    const results = state.formType === 'vinyl' ? await searchDiscogsByTitle(q) : await searchTmdbByTitle(q);
     if (mySeq !== titleAcSeq) return;
-    if (!results.length) {
-      showTitleStatus('No matches found');
-      return;
-    }
+    if (!results.length) { showTitleStatus('No matches found'); return; }
     renderTitleResults(results);
   } catch (err) {
     if (mySeq !== titleAcSeq) return;
-    showTitleStatus('Search failed: ' + (err.message || 'unknown error'));
+    showTitleStatus('Search failed: ' + (err.message || 'unknown'));
   }
 }
-
 function renderTitleResults(results) {
   titleAcEl.innerHTML = '';
   for (const r of results) {
     const item = document.createElement('div');
     item.className = 'autocomplete-item';
-    const thumb = r.thumbUrl
-      ? `<img class="autocomplete-thumb" src="${r.thumbUrl}" alt="">`
-      : `<div class="autocomplete-thumb">${state.formType === 'vinyl' ? '◉' : '▣'}</div>`;
-    item.innerHTML = `
-      ${thumb}
-      <div class="autocomplete-text">
-        <div class="autocomplete-title">${escapeHtml(r.title)}</div>
-        <div class="autocomplete-sub">${escapeHtml(r.sub || '')}</div>
-      </div>
-    `;
-    item.addEventListener('mousedown', (e) => {
-      // mousedown fires before blur, so this catches the tap before the field loses focus.
-      e.preventDefault();
-    });
+    const thumb = r.thumbUrl ? `<img class="autocomplete-thumb" src="${r.thumbUrl}" alt="">`
+                             : `<div class="autocomplete-thumb">${state.formType === 'vinyl' ? '◉' : '▣'}</div>`;
+    item.innerHTML = `${thumb}<div class="autocomplete-text">
+      <div class="autocomplete-title">${escapeHtml(r.title)}</div>
+      <div class="autocomplete-sub">${escapeHtml(r.sub || '')}</div></div>`;
+    item.addEventListener('mousedown', e => e.preventDefault());
     item.addEventListener('click', async () => {
       hideTitleAutocomplete();
       await applyTitleSearchPick(r);
@@ -1975,7 +1361,6 @@ function renderTitleResults(results) {
   }
   titleAcEl.classList.add('open');
 }
-
 async function applyTitleSearchPick(r) {
   fld.title.value = r.title || fld.title.value;
   if (r.artist && !fld.artist.value) fld.artist.value = r.artist;
@@ -1983,20 +1368,13 @@ async function applyTitleSearchPick(r) {
   if (r.coverUrl && !state.formImages.cover) {
     showToast('Fetching cover...');
     const dataUrl = await urlToCompressedDataURL(r.coverUrl);
-    if (dataUrl) {
-      state.formImages.cover = dataUrl;
-      refreshImageSlot('cover');
-    }
+    if (dataUrl) { state.formImages.cover = dataUrl; refreshImageSlot('cover'); }
   }
   showToast('Filled from search', 'success');
 }
-
-// --- TMDB (movies) ---
 async function searchTmdbByTitle(q) {
-  const token = localStorage.getItem('tmdb_token');
-  if (!token) {
-    throw new Error('Add a TMDB API key in Settings to enable DVD title search');
-  }
+  const token = state.config.tmdb_token;
+  if (!token) throw new Error('Add a TMDB API key in Settings → Advanced');
   const url = `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(token)}&query=${encodeURIComponent(q)}&include_adult=false`;
   const resp = await fetch(url);
   if (!resp.ok) {
@@ -2005,54 +1383,35 @@ async function searchTmdbByTitle(q) {
   }
   const data = await resp.json();
   if (!data.results || !data.results.length) return [];
-  // Map first 6 results to common shape.
   return data.results.slice(0, 6).map(m => {
     const year = m.release_date ? m.release_date.slice(0, 4) : '';
-    const posterPath = m.poster_path
-      ? `https://image.tmdb.org/t/p/w185${m.poster_path}`
-      : null;
-    const fullPosterPath = m.poster_path
-      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
-      : null;
     return {
       title: m.title,
       sub: [year, m.original_language ? m.original_language.toUpperCase() : ''].filter(Boolean).join(' · '),
-      thumbUrl: posterPath,
-      coverUrl: fullPosterPath,
-      // Genre comes from a separate genre_ids -> needs a name lookup; skip for autocomplete speed.
-      genre: '',
-      artist: '',
-      tmdbId: m.id,
+      thumbUrl: m.poster_path ? `https://image.tmdb.org/t/p/w185${m.poster_path}` : null,
+      coverUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
+      genre: '', artist: '',
     };
   });
 }
-
-// --- Discogs (vinyl) by title ---
 async function searchDiscogsByTitle(q) {
-  const token = localStorage.getItem('discogs_token');
-  if (!token) {
-    throw new Error('Add a Discogs token in Settings to enable vinyl title search');
-  }
+  const token = state.config.discogs_token;
+  if (!token) throw new Error('Add a Discogs token in Settings → Advanced');
   const url = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&format=Vinyl&token=${encodeURIComponent(token)}`;
-  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/1.0' } });
+  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
   if (!resp.ok) throw new Error('Discogs ' + resp.status);
   const data = await resp.json();
   if (!data.results || !data.results.length) return [];
   return data.results.slice(0, 6).map(r => {
-    // Discogs returns titles like "Artist - Album"; split when possible.
-    let title = r.title || '';
-    let artist = '';
+    let title = r.title || ''; let artist = '';
     if (title.includes(' - ')) {
       const parts = title.split(' - ');
       artist = parts[0].trim();
       title = parts.slice(1).join(' - ').trim();
     }
-    const year = r.year || '';
-    const format = (r.format && r.format[0]) || '';
     return {
-      title,
-      artist,
-      sub: [artist, year, format].filter(Boolean).join(' · '),
+      title, artist,
+      sub: [artist, r.year || '', (r.format && r.format[0]) || ''].filter(Boolean).join(' · '),
       thumbUrl: r.thumb || r.cover_image || null,
       coverUrl: r.cover_image || r.thumb || null,
       genre: (r.genre && r.genre[0]) || (r.style && r.style[0]) || '',
@@ -2060,919 +1419,117 @@ async function searchDiscogsByTitle(q) {
   });
 }
 
-// ---------- Settings: Discogs token ----------
-const settingsBtn = document.getElementById('settingsBtn');
-settingsBtn.addEventListener('click', () => {
-  document.getElementById('discogsToken').value = localStorage.getItem('discogs_token') || '';
-  document.getElementById('tmdbToken').value = localStorage.getItem('tmdb_token') || '';
-  refreshBackupSettingsUI();
+// ----- Settings -----
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('advDiscogs').value = state.config.discogs_token || '';
+  document.getElementById('advTmdb').value = state.config.tmdb_token || '';
+  const c = ghCfg();
+  document.getElementById('advOwner').value = c.owner;
+  document.getElementById('advRepo').value = c.repo;
+  document.getElementById('advBranch').value = c.branch;
+  document.getElementById('advToken').value = c.token;
+  refreshSettingsSyncUI();
   openModal('settingsModal');
 });
 document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
 document.getElementById('settingsDoneBtn').addEventListener('click', () => closeModal('settingsModal'));
-document.getElementById('saveTokenBtn').addEventListener('click', () => {
-  const v = document.getElementById('discogsToken').value.trim();
-  if (v) localStorage.setItem('discogs_token', v);
-  else localStorage.removeItem('discogs_token');
-  showToast('Token saved', 'success');
+document.getElementById('saveAdvTokensBtn').addEventListener('click', async () => {
+  state.config.discogs_token = document.getElementById('advDiscogs').value.trim();
+  state.config.tmdb_token = document.getElementById('advTmdb').value.trim();
+  saveLocalCache();
+  try { await pushConfig(); showToast('Saved to GitHub', 'success'); }
+  catch (err) { showToast('Save failed: ' + err.message, 'error'); }
 });
-document.getElementById('saveTmdbBtn').addEventListener('click', () => {
-  const v = document.getElementById('tmdbToken').value.trim();
-  if (v) localStorage.setItem('tmdb_token', v);
-  else localStorage.removeItem('tmdb_token');
-  showToast('TMDB key saved', 'success');
-});
-
-// Cloud backup wiring
-document.getElementById('saveGoogleClientBtn').addEventListener('click', () => {
-  const id = document.getElementById('googleClientId').value.trim();
-  const secret = document.getElementById('googleClientSecret').value.trim();
-  setCloudClientId('google', id);
-  setCloudClientSecret('google', secret);
-  showToast('Google credentials saved', 'success');
-});
-document.getElementById('saveOneDriveClientBtn').addEventListener('click', () => {
-  const v = document.getElementById('onedriveClientId').value.trim();
-  setCloudClientId('onedrive', v);
-  showToast('OneDrive Client ID saved', 'success');
-});
-document.getElementById('connectGoogleBtn').addEventListener('click', () => connectCloudProvider('google'));
-document.getElementById('connectOneDriveBtn').addEventListener('click', () => connectCloudProvider('onedrive'));
-document.getElementById('saveGithubBtn').addEventListener('click', () => {
-  setGithubConfig({
-    token: document.getElementById('githubToken').value.trim(),
-    owner: document.getElementById('githubOwner').value.trim(),
-    repo: document.getElementById('githubRepo').value.trim(),
-    branch: document.getElementById('githubBranch').value.trim() || 'main',
+document.getElementById('saveGhConnBtn').addEventListener('click', async () => {
+  setGhCfg({
+    owner: document.getElementById('advOwner').value.trim(),
+    repo: document.getElementById('advRepo').value.trim(),
+    branch: document.getElementById('advBranch').value.trim() || 'main',
+    token: document.getElementById('advToken').value.trim(),
   });
-  showToast('GitHub config saved', 'success');
+  showToast('Connection saved', 'success');
+  try { await pullFromCloud(); } catch {}
 });
-document.getElementById('connectGithubBtn').addEventListener('click', connectGithub);
-document.getElementById('manualBackupNowBtn').addEventListener('click', manualCloudBackup);
-document.getElementById('restoreFromCloudBtn').addEventListener('click', restoreFromCloud);
-document.getElementById('disconnectCloudBtn').addEventListener('click', async () => {
-  if (!confirm('Disconnect from cloud? Your backup file remains in cloud storage, but the app stops uploading.')) return;
-  await clearCloudState();
-  showToast('Disconnected', 'success');
+document.getElementById('pullNowBtn').addEventListener('click', async () => {
+  try { await pullFromCloud(); showToast('Pulled latest from GitHub', 'success'); }
+  catch (err) { showToast('Pull failed: ' + err.message, 'error'); }
 });
-
-// Header "back up now" icon
-document.getElementById('headerBackupBtn').addEventListener('click', async () => {
-  if (cloudState.provider) {
-    await manualCloudBackup();
-  } else {
-    // No cloud configured: fall back to local JSON download.
-    document.getElementById('exportJsonBtn').click();
-  }
+document.getElementById('pushNowBtn').addEventListener('click', async () => {
+  try { await pushLibrary(); await pushConfig(); showToast('Pushed to GitHub', 'success'); }
+  catch (err) { showToast('Push failed: ' + err.message, 'error'); }
 });
 
-// ---------- Export ----------
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+// ----- Wizard -----
+function openWizard() {
+  showWizardStep(1);
+  document.getElementById('wizardModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
-
-function makeStamp() {
-  const d = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+function closeWizard() {
+  document.getElementById('wizardModal').classList.remove('open');
+  document.body.style.overflow = '';
 }
-
-document.getElementById('exportJsonBtn').addEventListener('click', () => {
-  const payload = {
-    app: 'the_j_stash',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    items: state.items,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  downloadBlob(blob, `j_stash_backup_${makeStamp()}.json`);
-  showToast('JSON saved to Downloads', 'success');
-});
-
-document.getElementById('exportCsvBtn').addEventListener('click', () => {
-  const headers = ['id','type','title','artist','genre','barcode','note','addedAt','updatedAt'];
-  const rows = [headers.join(',')];
-  for (const it of state.items) {
-    const row = headers.map(h => {
-      let v = it[h];
-      if (h === 'addedAt' || h === 'updatedAt') v = v ? new Date(v).toISOString() : '';
-      v = (v == null) ? '' : String(v);
-      if (/[",\n\r]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
-      return v;
-    });
-    rows.push(row.join(','));
-  }
-  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-  downloadBlob(blob, `j_stash_backup_${makeStamp()}.csv`);
-  showToast('CSV saved to Downloads', 'success');
-});
-
-document.getElementById('exportZipBtn').addEventListener('click', exportZip);
-
-// Minimal ZIP writer (store-only, no compression). Keeps the bundle small.
-async function exportZip() {
-  showToast('Building ZIP backup...');
-  const files = [];
-  // JSON manifest
-  const payload = {
-    app: 'the_j_stash',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    items: state.items.map(it => {
-      const copy = { ...it };
-      // Strip image data; reference filenames instead.
-      if (copy.cover) copy.cover_file = `images/${it.id}_cover.jpg`;
-      if (copy.secondary) copy.secondary_file = `images/${it.id}_secondary.jpg`;
-      delete copy.cover; delete copy.secondary;
-      return copy;
-    }),
-  };
-  files.push({ name: 'j_stash.json', data: new TextEncoder().encode(JSON.stringify(payload, null, 2)) });
-
-  // CSV
-  const headers = ['id','type','title','artist','genre','barcode','note','addedAt','updatedAt'];
-  const rows = [headers.join(',')];
-  for (const it of state.items) {
-    const row = headers.map(h => {
-      let v = it[h];
-      if (h === 'addedAt' || h === 'updatedAt') v = v ? new Date(v).toISOString() : '';
-      v = (v == null) ? '' : String(v);
-      if (/[",\n\r]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
-      return v;
-    });
-    rows.push(row.join(','));
-  }
-  files.push({ name: 'j_stash.csv', data: new TextEncoder().encode(rows.join('\n')) });
-
-  // Images (decode dataURLs to bytes)
-  for (const it of state.items) {
-    if (it.cover) {
-      const bytes = dataUrlToBytes(it.cover);
-      if (bytes) files.push({ name: `images/${it.id}_cover.jpg`, data: bytes });
-    }
-    if (it.secondary) {
-      const bytes = dataUrlToBytes(it.secondary);
-      if (bytes) files.push({ name: `images/${it.id}_secondary.jpg`, data: bytes });
-    }
-  }
-
-  const zipBytes = buildZip(files);
-  const blob = new Blob([zipBytes], { type: 'application/zip' });
-  downloadBlob(blob, `j_stash_backup_${makeStamp()}.zip`);
-  showToast('ZIP saved to Downloads', 'success');
-}
-
-function dataUrlToBytes(dataUrl) {
-  try {
-    const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
-    if (!m) return null;
-    const bin = atob(m[2]);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    return arr;
-  } catch { return null; }
-}
-
-// CRC32 + minimal store-only ZIP encoder
-const CRC_TABLE = (() => {
-  const t = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-    t[n] = c >>> 0;
-  }
-  return t;
-})();
-function crc32(bytes) {
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-function buildZip(files) {
-  const enc = new TextEncoder();
-  const localParts = [];
-  const centralParts = [];
-  let offset = 0;
-  for (const f of files) {
-    const nameBytes = enc.encode(f.name);
-    const data = f.data;
-    const crc = crc32(data);
-    const size = data.length;
-
-    // Local file header
-    const local = new Uint8Array(30 + nameBytes.length + size);
-    const dv = new DataView(local.buffer);
-    dv.setUint32(0, 0x04034b50, true);
-    dv.setUint16(4, 20, true); // version
-    dv.setUint16(6, 0, true);  // flags
-    dv.setUint16(8, 0, true);  // method = store
-    dv.setUint16(10, 0, true); // mtime
-    dv.setUint16(12, 0, true); // mdate
-    dv.setUint32(14, crc, true);
-    dv.setUint32(18, size, true);
-    dv.setUint32(22, size, true);
-    dv.setUint16(26, nameBytes.length, true);
-    dv.setUint16(28, 0, true);
-    local.set(nameBytes, 30);
-    local.set(data, 30 + nameBytes.length);
-    localParts.push(local);
-
-    // Central directory entry
-    const central = new Uint8Array(46 + nameBytes.length);
-    const cdv = new DataView(central.buffer);
-    cdv.setUint32(0, 0x02014b50, true);
-    cdv.setUint16(4, 20, true);
-    cdv.setUint16(6, 20, true);
-    cdv.setUint16(8, 0, true);
-    cdv.setUint16(10, 0, true);
-    cdv.setUint16(12, 0, true);
-    cdv.setUint16(14, 0, true);
-    cdv.setUint32(16, crc, true);
-    cdv.setUint32(20, size, true);
-    cdv.setUint32(24, size, true);
-    cdv.setUint16(28, nameBytes.length, true);
-    cdv.setUint16(30, 0, true);
-    cdv.setUint16(32, 0, true);
-    cdv.setUint16(34, 0, true);
-    cdv.setUint16(36, 0, true);
-    cdv.setUint32(38, 0, true);
-    cdv.setUint32(42, offset, true);
-    central.set(nameBytes, 46);
-    centralParts.push(central);
-
-    offset += local.length;
-  }
-  const centralSize = centralParts.reduce((n, p) => n + p.length, 0);
-  const centralOffset = offset;
-  // EOCD
-  const eocd = new Uint8Array(22);
-  const edv = new DataView(eocd.buffer);
-  edv.setUint32(0, 0x06054b50, true);
-  edv.setUint16(4, 0, true);
-  edv.setUint16(6, 0, true);
-  edv.setUint16(8, files.length, true);
-  edv.setUint16(10, files.length, true);
-  edv.setUint32(12, centralSize, true);
-  edv.setUint32(16, centralOffset, true);
-  edv.setUint16(20, 0, true);
-
-  const total = offset + centralSize + eocd.length;
-  const out = new Uint8Array(total);
-  let p = 0;
-  for (const part of localParts) { out.set(part, p); p += part.length; }
-  for (const part of centralParts) { out.set(part, p); p += part.length; }
-  out.set(eocd, p);
-  return out;
-}
-
-// ---------- Cloud auto-backup (Google Drive or OneDrive) ----------
-// User picks a provider, signs in via OAuth (PKCE flow — no client secret needed),
-// app stores the tokens in IndexedDB and silently overwrites a single file
-// 'the_j_stash.json' on every save/edit/delete. Backup files appear in:
-//   - Google Drive: top level "My Drive"
-//   - OneDrive: top level (root)
-
-const BACKUP_FILENAME = 'the_j_stash.json';
-let cloudWriteTimer = null;
-let cloudState = {
-  provider: null,        // 'google' | 'onedrive' | null
-  accessToken: null,
-  refreshToken: null,    // Google only; MS doesn't return refresh tokens for SPAs unless we ask for offline_access
-  expiresAt: 0,
-  fileId: null,          // cached file id once we've located/created it
-};
-
-// Provider configurations. The user supplies the client ID per provider in Settings.
-const CLOUD_PROVIDERS = {
-  google: {
-    name: 'Google Drive',
-    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    tokenUrl: 'https://oauth2.googleapis.com/token',
-    scopes: 'https://www.googleapis.com/auth/drive.file',
-    extraAuthParams: { access_type: 'offline', prompt: 'consent' },
-  },
-  onedrive: {
-    name: 'OneDrive',
-    authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
-    tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-    scopes: 'Files.ReadWrite offline_access',
-    extraAuthParams: {},
-  },
-  // GitHub is handled separately below: it uses a Personal Access Token, not OAuth.
-};
-
-// GitHub-specific config and helpers. Lives in localStorage to keep tokens
-// scoped per browser. Token MUST be a fine-grained PAT scoped to one repo
-// with "Contents: Read and write" permission.
-const GITHUB_FILE_PATH = 'backups/the_j_stash.json';
-function getGithubConfig() {
-  return {
-    token: localStorage.getItem('github_token') || '',
-    owner: localStorage.getItem('github_owner') || '',
-    repo: localStorage.getItem('github_repo') || '',
-    branch: localStorage.getItem('github_branch') || 'main',
-  };
-}
-function setGithubConfig(cfg) {
-  if (cfg.token) localStorage.setItem('github_token', cfg.token); else localStorage.removeItem('github_token');
-  if (cfg.owner) localStorage.setItem('github_owner', cfg.owner); else localStorage.removeItem('github_owner');
-  if (cfg.repo) localStorage.setItem('github_repo', cfg.repo); else localStorage.removeItem('github_repo');
-  if (cfg.branch) localStorage.setItem('github_branch', cfg.branch); else localStorage.removeItem('github_branch');
-}
-
-function getCloudClientId(provider) {
-  return localStorage.getItem(`cloud_client_id_${provider}`) || '';
-}
-function setCloudClientId(provider, id) {
-  if (id) localStorage.setItem(`cloud_client_id_${provider}`, id);
-  else localStorage.removeItem(`cloud_client_id_${provider}`);
-}
-// Google requires client_secret in token exchange even for browser/PKCE clients.
-// For "public" clients this isn't truly secret, but the API rejects requests without it.
-function getCloudClientSecret(provider) {
-  return localStorage.getItem(`cloud_client_secret_${provider}`) || '';
-}
-function setCloudClientSecret(provider, secret) {
-  if (secret) localStorage.setItem(`cloud_client_secret_${provider}`, secret);
-  else localStorage.removeItem(`cloud_client_secret_${provider}`);
-}
-
-async function loadCloudState() {
-  try {
-    const saved = await metaGet('cloud_state');
-    if (saved) cloudState = { ...cloudState, ...saved };
-  } catch {}
-  refreshBackupSettingsUI();
-}
-async function saveCloudState() {
-  await metaSet('cloud_state', cloudState);
-}
-async function clearCloudState() {
-  cloudState = { provider: null, accessToken: null, refreshToken: null, expiresAt: 0, fileId: null };
-  await metaSet('cloud_state', cloudState);
-  refreshBackupSettingsUI();
-}
-
-// ---- PKCE helpers ----
-function b64url(bytes) {
-  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function makePkcePair() {
-  const verifierBytes = new Uint8Array(64);
-  crypto.getRandomValues(verifierBytes);
-  const verifier = b64url(verifierBytes);
-  const challengeDigest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  const challenge = b64url(challengeDigest);
-  return { verifier, challenge };
-}
-
-// Connect: start OAuth flow for chosen provider.
-async function connectCloudProvider(provider) {
-  const cfg = CLOUD_PROVIDERS[provider];
-  if (!cfg) return;
-  const clientId = getCloudClientId(provider);
-  if (!clientId) {
-    showToast(`Add a ${cfg.name} Client ID in Settings first`, 'error');
-    return;
-  }
-  const { verifier, challenge } = await makePkcePair();
-  // Stash verifier + provider for the callback page-load to use.
-  sessionStorage.setItem('oauth_verifier', verifier);
-  sessionStorage.setItem('oauth_provider', provider);
-  const redirectUri = window.location.origin + window.location.pathname;
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: 'code',
-    redirect_uri: redirectUri,
-    scope: cfg.scopes,
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
-    state: provider,
-    ...cfg.extraAuthParams,
+function showWizardStep(n) {
+  document.querySelectorAll('.wizard-step').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.step) === n);
   });
-  // Navigate to the OAuth page. Browser returns here with ?code=... in the URL.
-  window.location.href = `${cfg.authUrl}?${params.toString()}`;
+  document.querySelectorAll('.wizard-dot').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.step) <= n);
+  });
 }
-
-// On page load, check if we've returned from an OAuth flow.
-async function handleOAuthCallback() {
-  const url = new URL(window.location.href);
-  const code = url.searchParams.get('code');
-  const stateParam = url.searchParams.get('state');
-  const errorParam = url.searchParams.get('error');
-  if (errorParam) {
-    showToast(`OAuth error: ${errorParam}`, 'error');
-    // Clean the URL.
-    window.history.replaceState({}, '', url.pathname);
-    return;
-  }
-  if (!code || !stateParam) return;
-
-  const provider = stateParam;
-  const cfg = CLOUD_PROVIDERS[provider];
-  const verifier = sessionStorage.getItem('oauth_verifier');
-  sessionStorage.removeItem('oauth_verifier');
-  sessionStorage.removeItem('oauth_provider');
-  if (!cfg || !verifier) {
-    showToast('OAuth state lost; please try connecting again', 'error');
-    window.history.replaceState({}, '', url.pathname);
-    return;
-  }
-  const clientId = getCloudClientId(provider);
-  const redirectUri = window.location.origin + window.location.pathname;
-
+document.getElementById('wizNext1').addEventListener('click', () => showWizardStep(2));
+document.getElementById('wizBack2').addEventListener('click', () => showWizardStep(1));
+document.getElementById('wizBack3').addEventListener('click', () => showWizardStep(2));
+document.getElementById('wizNext2').addEventListener('click', async () => {
+  const owner = document.getElementById('wizOwner').value.trim();
+  const repo = document.getElementById('wizRepo').value.trim();
+  const branch = document.getElementById('wizBranch').value.trim() || 'main';
+  const token = document.getElementById('wizToken').value.trim();
+  if (!owner || !repo || !token) { showToast('All fields required', 'error'); return; }
+  setGhCfg({ owner, repo, branch, token });
   try {
-    const body = new URLSearchParams({
-      client_id: clientId,
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: redirectUri,
-      code_verifier: verifier,
-    });
-    // Google requires client_secret in the token exchange even with PKCE.
-    const secret = getCloudClientSecret(provider);
-    if (secret) body.set('client_secret', secret);
-    const resp = await fetch(cfg.tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error(`Token exchange failed: ${resp.status} ${errText.slice(0, 200)}`);
-    }
-    const data = await resp.json();
-    cloudState.provider = provider;
-    cloudState.accessToken = data.access_token;
-    if (data.refresh_token) cloudState.refreshToken = data.refresh_token;
-    cloudState.expiresAt = Date.now() + (data.expires_in || 3600) * 1000;
-    cloudState.fileId = null; // reset; we'll re-find/create the file on next write
-    await saveCloudState();
-    refreshBackupSettingsUI();
-    showToast(`Connected to ${cfg.name}`, 'success');
-    // Clean the URL so the code doesn't sit in history.
-    window.history.replaceState({}, '', url.pathname);
-    // Do an immediate backup write so the user sees the file appear.
-    await scheduleAutoBackupImmediate();
+    showToast('Testing connection...');
+    await pullFromCloud();
+    document.getElementById('wizDiscogs').value = state.config.discogs_token || '';
+    document.getElementById('wizTmdb').value = state.config.tmdb_token || '';
+    showWizardStep(3);
   } catch (err) {
-    showToast('Cloud connect failed: ' + err.message, 'error');
-    window.history.replaceState({}, '', url.pathname);
+    showToast('Connection test failed: ' + err.message, 'error');
   }
-}
-
-// Refresh an expired token. Returns the fresh access token, or null if it failed.
-async function refreshCloudToken() {
-  if (!cloudState.refreshToken || !cloudState.provider) return null;
-  const cfg = CLOUD_PROVIDERS[cloudState.provider];
-  const clientId = getCloudClientId(cloudState.provider);
-  try {
-    const body = new URLSearchParams({
-      client_id: clientId,
-      grant_type: 'refresh_token',
-      refresh_token: cloudState.refreshToken,
-    });
-    const secret = getCloudClientSecret(cloudState.provider);
-    if (secret) body.set('client_secret', secret);
-    const resp = await fetch(cfg.tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
-    if (!resp.ok) throw new Error('refresh failed ' + resp.status);
-    const data = await resp.json();
-    cloudState.accessToken = data.access_token;
-    if (data.refresh_token) cloudState.refreshToken = data.refresh_token;
-    cloudState.expiresAt = Date.now() + (data.expires_in || 3600) * 1000;
-    await saveCloudState();
-    return cloudState.accessToken;
-  } catch (err) {
-    console.warn('Refresh failed:', err);
-    return null;
-  }
-}
-
-async function getValidAccessToken() {
-  if (!cloudState.accessToken) return null;
-  // Refresh 60s before actual expiry for safety.
-  if (Date.now() > cloudState.expiresAt - 60_000) {
-    const fresh = await refreshCloudToken();
-    if (!fresh) return null;
-  }
-  return cloudState.accessToken;
-}
-
-// ---- Google Drive write logic ----
-async function googleFindOrCreateFile(token) {
-  // Search for existing backup file by name. drive.file scope only sees files the app created.
-  const q = encodeURIComponent(`name = '${BACKUP_FILENAME}' and trashed = false`);
-  const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-    headers: { Authorization: 'Bearer ' + token },
-  });
-  if (!searchResp.ok) throw new Error('Drive search ' + searchResp.status);
-  const searchData = await searchResp.json();
-  if (searchData.files && searchData.files.length) return searchData.files[0].id;
-  // Create empty file.
-  const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
-    method: 'POST',
-    headers: {
-      Authorization: 'Bearer ' + token,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name: BACKUP_FILENAME, mimeType: 'application/json' }),
-  });
-  if (!createResp.ok) throw new Error('Drive create ' + createResp.status);
-  const createData = await createResp.json();
-  return createData.id;
-}
-async function googleWriteFile(token, fileId, content) {
-  const resp = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: 'Bearer ' + token,
-      'Content-Type': 'application/json',
-    },
-    body: content,
-  });
-  if (!resp.ok) throw new Error('Drive write ' + resp.status);
-}
-
-// ---- OneDrive write logic ----
-async function onedriveWrite(token, content) {
-  // Microsoft Graph: PUT to /me/drive/root:/the_j_stash.json:/content overwrites or creates.
-  const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(BACKUP_FILENAME)}:/content`, {
-    method: 'PUT',
-    headers: {
-      Authorization: 'Bearer ' + token,
-      'Content-Type': 'application/json',
-    },
-    body: content,
-  });
-  if (!resp.ok) throw new Error('OneDrive write ' + resp.status);
-}
-
-// ---- GitHub write logic ----
-// The Contents API requires the file's current SHA when updating. On the first
-// write, the file doesn't exist, so we omit the SHA and create. Subsequent
-// writes fetch the current SHA, then PUT with it as a precondition.
-async function githubFetchCurrentSha(cfg) {
-  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${GITHUB_FILE_PATH}?ref=${encodeURIComponent(cfg.branch)}`;
-  const resp = await fetch(url, {
-    headers: {
-      Authorization: 'Bearer ' + cfg.token,
-      Accept: 'application/vnd.github+json',
-    },
-  });
-  if (resp.status === 404) return null; // file doesn't exist yet
-  if (!resp.ok) throw new Error('GitHub read ' + resp.status);
-  const data = await resp.json();
-  return data.sha;
-}
-
-async function githubWriteFile(cfg, content) {
-  const sha = await githubFetchCurrentSha(cfg);
-  // GitHub Contents API expects content as base64-encoded UTF-8.
-  const b64 = btoa(unescape(encodeURIComponent(content)));
-  const body = {
-    message: `Backup: ${state.items.length} items @ ${new Date().toISOString()}`,
-    content: b64,
-    branch: cfg.branch,
-  };
-  if (sha) body.sha = sha;
-  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${GITHUB_FILE_PATH}`;
-  const resp = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      Authorization: 'Bearer ' + cfg.token,
-      Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) {
-    const errText = await resp.text();
-    throw new Error(`GitHub write ${resp.status}: ${errText.slice(0, 200)}`);
-  }
-}
-
-async function githubReadFile(cfg) {
-  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${GITHUB_FILE_PATH}?ref=${encodeURIComponent(cfg.branch)}`;
-  const resp = await fetch(url, {
-    headers: {
-      Authorization: 'Bearer ' + cfg.token,
-      Accept: 'application/vnd.github+json',
-    },
-  });
-  if (resp.status === 404) throw new Error('No backup file found in the repo');
-  if (!resp.ok) throw new Error('GitHub read ' + resp.status);
-  const data = await resp.json();
-  // Content is base64-encoded UTF-8.
-  return decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
-}
-
-function isGithubConfigured() {
-  const cfg = getGithubConfig();
-  return !!(cfg.token && cfg.owner && cfg.repo);
-}
-
-async function connectGithub() {
-  // GitHub doesn't have OAuth in our setup — connecting just means having token/owner/repo set.
-  if (!isGithubConfigured()) {
-    showToast('Fill in GitHub token, owner, and repo first', 'error');
-    return;
-  }
-  // Smoke test: try to read or create the file.
-  try {
-    showToast('Testing GitHub connection...');
-    await githubFetchCurrentSha(getGithubConfig()); // 404 is fine, just verifies auth works
-    cloudState.provider = 'github';
-    cloudState.fileId = null;
-    await saveCloudState();
-    refreshBackupSettingsUI();
-    showToast('Connected to GitHub', 'success');
-    await scheduleAutoBackupImmediate();
-  } catch (err) {
-    showToast('GitHub connection failed: ' + err.message, 'error');
-  }
-}
-
-// Debounced wrapper: rapid edits coalesce into one write.
-function scheduleAutoBackup() {
-  if (!cloudState.provider) return;
-  clearTimeout(cloudWriteTimer);
-  cloudWriteTimer = setTimeout(() => {
-    writeCloudBackup().catch(err => console.warn('Auto-backup error:', err));
-  }, 1500);
-}
-async function scheduleAutoBackupImmediate() {
-  clearTimeout(cloudWriteTimer);
-  await writeCloudBackup();
-}
-
-async function writeCloudBackup() {
-  if (!cloudState.provider) return;
-  // GitHub uses a PAT, not OAuth — no token refresh needed.
-  if (cloudState.provider === 'github') {
-    if (!isGithubConfigured()) {
-      showToast('GitHub config missing — re-enter in Settings', 'error');
-      return;
-    }
-    const payload = {
-      app: 'the_j_stash',
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      items: state.items,
-    };
-    try {
-      await githubWriteFile(getGithubConfig(), JSON.stringify(payload, null, 2));
-    } catch (err) {
-      showToast('GitHub backup failed: ' + (err.message || 'unknown'), 'error');
-    }
-    return;
-  }
-  // Google / OneDrive path
-  const token = await getValidAccessToken();
-  if (!token) {
-    showToast('Cloud session expired — reconnect in Settings', 'error');
-    return;
-  }
-  const payload = {
-    app: 'the_j_stash',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    items: state.items,
-  };
-  const content = JSON.stringify(payload, null, 2);
-  try {
-    if (cloudState.provider === 'google') {
-      if (!cloudState.fileId) {
-        cloudState.fileId = await googleFindOrCreateFile(token);
-        await saveCloudState();
-      }
-      await googleWriteFile(token, cloudState.fileId, content);
-    } else if (cloudState.provider === 'onedrive') {
-      await onedriveWrite(token, content);
-    }
-    // Quiet success — no toast, runs on every change.
-  } catch (err) {
-    showToast('Cloud backup failed: ' + (err.message || 'unknown'), 'error');
-  }
-}
-
-// Manually trigger a backup write right now (for the Settings "Back up now" button).
-async function manualCloudBackup() {
-  if (!cloudState.provider) {
-    showToast('Connect a cloud provider first', 'error');
-    return;
-  }
-  showToast('Uploading backup...');
-  await scheduleAutoBackupImmediate();
-  if (cloudState.provider) {
-    // If still set after the call, write succeeded.
-    showToast('Backup uploaded', 'success');
-  }
-}
-
-function refreshBackupSettingsUI() {
-  const status = document.getElementById('backupCloudStatus');
-  if (!status) return;
-  if (cloudState.provider === 'github') {
-    const cfg = getGithubConfig();
-    status.innerHTML = `Connected to <strong>GitHub</strong> at <strong>${escapeHtml(cfg.owner)}/${escapeHtml(cfg.repo)}</strong> (branch ${escapeHtml(cfg.branch)}), file <strong>${GITHUB_FILE_PATH}</strong>.`;
-  } else if (cloudState.provider) {
-    const name = CLOUD_PROVIDERS[cloudState.provider].name;
-    status.innerHTML = `Connected to <strong>${escapeHtml(name)}</strong>. Backups go to <strong>${BACKUP_FILENAME}</strong> at the root of your drive.`;
-  } else {
-    status.textContent = 'Not connected. Pick a provider below to enable automatic cloud backups.';
-  }
-  // Populate inputs
-  const gId = document.getElementById('googleClientId');
-  const gSec = document.getElementById('googleClientSecret');
-  const mId = document.getElementById('onedriveClientId');
-  if (gId) gId.value = getCloudClientId('google');
-  if (gSec) gSec.value = getCloudClientSecret('google');
-  if (mId) mId.value = getCloudClientId('onedrive');
-  const ghCfg = getGithubConfig();
-  const ghTok = document.getElementById('githubToken');
-  const ghOwner = document.getElementById('githubOwner');
-  const ghRepo = document.getElementById('githubRepo');
-  const ghBranch = document.getElementById('githubBranch');
-  if (ghTok) ghTok.value = ghCfg.token;
-  if (ghOwner) ghOwner.value = ghCfg.owner;
-  if (ghRepo) ghRepo.value = ghCfg.repo;
-  if (ghBranch) ghBranch.value = ghCfg.branch;
-}
-
-// Restore the latest backup from cloud — used when device storage is wiped.
-async function restoreFromCloud() {
-  if (!cloudState.provider) {
-    showToast('Connect a cloud provider first', 'error');
-    return;
-  }
-  if (!confirm('Restore from cloud will REPLACE current entries with cloud copy. Continue?')) return;
-  try {
-    let content = null;
-    if (cloudState.provider === 'github') {
-      content = await githubReadFile(getGithubConfig());
-    } else {
-      const token = await getValidAccessToken();
-      if (!token) {
-        showToast('Cloud session expired — reconnect in Settings', 'error');
-        return;
-      }
-      if (cloudState.provider === 'google') {
-        const q = encodeURIComponent(`name = '${BACKUP_FILENAME}' and trashed = false`);
-        const searchResp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-        if (!searchResp.ok) throw new Error('Search ' + searchResp.status);
-        const searchData = await searchResp.json();
-        if (!searchData.files || !searchData.files.length) throw new Error('No backup file found in your Drive');
-        const fileId = searchData.files[0].id;
-        const downloadResp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-        if (!downloadResp.ok) throw new Error('Download ' + downloadResp.status);
-        content = await downloadResp.text();
-      } else if (cloudState.provider === 'onedrive') {
-        const resp = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(BACKUP_FILENAME)}:/content`, {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-        if (!resp.ok) throw new Error('Download ' + resp.status);
-        content = await resp.text();
-      }
-    }
-    const data = JSON.parse(content);
-    if (!data || !Array.isArray(data.items)) throw new Error('Backup file looks invalid');
-    await dbClear();
-    for (const item of data.items) {
-      if (!item.id) item.id = uid();
-      if (!item.addedAt) item.addedAt = Date.now();
-      await dbPut(item);
-    }
-    state.items = await dbGetAll();
-    renderAll();
-    updatePeakCount();
-    showToast(`Restored ${data.items.length} entries from cloud`, 'success');
-  } catch (err) {
-    showToast('Cloud restore failed: ' + err.message, 'error');
-  }
-}
-
-// ---------- Import ----------
-document.getElementById('importBtn').addEventListener('click', () => {
-  document.getElementById('importFile').click();
 });
-document.getElementById('importFile').addEventListener('change', async (e) => {
-  const file = e.target.files && e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  if (!file.name.toLowerCase().endsWith('.json')) {
-    showToast('Please pick a JSON backup file. ZIP import is not supported yet.', 'error');
-    return;
-  }
+document.getElementById('wizFinish').addEventListener('click', async () => {
+  state.config.discogs_token = document.getElementById('wizDiscogs').value.trim();
+  state.config.tmdb_token = document.getElementById('wizTmdb').value.trim();
+  saveLocalCache();
   try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if (!data || !Array.isArray(data.items)) throw new Error('Invalid backup');
-    if (!confirm(`Import ${data.items.length} entries? Existing entries with the same ID will be replaced.`)) return;
-    for (const item of data.items) {
-      if (!item.id) item.id = uid();
-      if (!item.addedAt) item.addedAt = Date.now();
-      await dbPut(item);
-    }
-    state.items = await dbGetAll();
-    renderAll();
-    updatePeakCount();
-    scheduleAutoBackup();
-    showToast(`Imported ${data.items.length} entries`, 'success');
+    await pushConfig();
+    if (!localStorage.getItem(LS_KEYS.librarySha)) await pushLibrary();
+    closeWizard();
+    showToast('Setup complete', 'success');
   } catch (err) {
-    showToast('Import failed: ' + err.message, 'error');
+    showToast('Final save failed: ' + err.message, 'error');
   }
 });
 
-// ---------- Erase ----------
-document.getElementById('eraseBtn').addEventListener('click', async () => {
-  if (!confirm('Erase ALL entries permanently? This cannot be undone.')) return;
-  if (!confirm('Really erase everything? Last chance.')) return;
-  await dbClear();
-  state.items = [];
-  renderAll();
-  try { localStorage.setItem('jstash_peak_count', '0'); } catch {}
-  scheduleAutoBackup();
-  showToast('All data erased', 'success');
-});
-
-// ---------- Boot ----------
+// ----- Boot -----
 (async function init() {
-  try {
-    state.items = await dbGetAll();
-  } catch (err) {
-    showToast('Storage error: ' + err.message, 'error');
-  }
+  loadLocalCache();
   renderAll();
-  checkForDataLoss();
-  await loadCloudState();
-  // If the page URL has ?code=... we just returned from OAuth.
-  await handleOAuthCallback();
+  if (!isConfigured()) {
+    setSyncStatus('init');
+    openWizard();
+    return;
+  }
+  try {
+    await pullFromCloud();
+  } catch (err) {
+    if (err.message.includes('401') || err.message.includes('403')) {
+      showToast('GitHub auth failed — check token in Settings → Advanced', 'error');
+    } else {
+      setSyncStatus('error', err.message);
+    }
+  }
 })();
-
-// Track the highest item count we've ever seen. If we boot up with fewer
-// items than last time WITHOUT the user having deleted them in this session,
-// warn them so they can restore from backup before adding new entries on top
-// of a partial library.
-function checkForDataLoss() {
-  try {
-    const prevPeak = parseInt(localStorage.getItem('jstash_peak_count') || '0', 10);
-    const now = state.items.length;
-    if (prevPeak > 0 && now < prevPeak - 1) {
-      // Allow a 1-item tolerance for in-flight deletes. Otherwise this is suspicious.
-      setTimeout(() => {
-        const msg = `Heads up: your library has ${now} entries but previously had ${prevPeak}. ` +
-                    `If you didn't delete entries, your browser may have cleared storage. ` +
-                    `You can restore from a JSON backup via Settings > Import JSON.`;
-        alert(msg);
-      }, 600);
-    }
-    // Always update the peak to the higher of (current, prevPeak).
-    const newPeak = Math.max(prevPeak, now);
-    localStorage.setItem('jstash_peak_count', String(newPeak));
-  } catch {}
-}
-
-// Update peak after every save or delete so the sentinel stays accurate.
-function updatePeakCount() {
-  try {
-    const cur = state.items.length;
-    const prev = parseInt(localStorage.getItem('jstash_peak_count') || '0', 10);
-    if (cur > prev) localStorage.setItem('jstash_peak_count', String(cur));
-    if (cur < prev) localStorage.setItem('jstash_peak_count', String(cur));
-  } catch {}
-}
-
-// Note: an earlier version of this app registered a service worker from a
-// dynamically-generated blob: URL for offline caching. That caused issues:
-// every page load created a new SW URL, and some browsers (notably Brave)
-// would clear storage associated with "abandoned" service worker scopes,
-// wiping the user's library and API keys on every deploy. Service worker
-// registration has been removed. Offline support can be added back later
-// from a real file like /sw.js if needed.
-//
-// Clean up any prior service worker registrations from earlier versions so
-// they can't continue to fight with current storage. Safe no-op if none exist.
-if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    for (const reg of regs) {
-      reg.unregister().catch(() => {});
-    }
-  }).catch(() => {});
-}
 </script>
 </body>
 </html>
