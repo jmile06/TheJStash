@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>The J Stash — Vinyl & DVD Catalog</title>
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22The%20J%20Stash%22%2C%22short_name%22%3A%22J%20Stash%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f0f10%22%2C%22theme_color%22%3A%22%230f0f10%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzBmMGYxMCIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjY0IiBmaWxsPSIjZTI4MjEzIi8%2BPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iMTYiIGZpbGw9IiMwZjBmMTAiLz48L3N2Zz4%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg+xml%22%7D%5D%7D">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap');
+  :root {
+    --bg: #0f0f10; --bg-elev: #1a1a1c; --bg-elev-2: #232326;
+    --border: #2a2a2e; --text: #ececec; --text-dim: #9a9a9e; --text-faint: #5a5a5e;
+    --accent: #e28213; --accent-dim: #c46b08;
+    --danger: #d04a3d; --success: #3da66e; --warn: #d4a017;
+    --radius: 8px; --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:'Inter Tight',system-ui,sans-serif; font-size:15px;
+    -webkit-font-smoothing:antialiased; overscroll-behavior-y:none; }
+  body { padding-bottom: env(safe-area-inset-bottom); padding-top: env(safe-area-inset-top);
+    min-height:100vh; display:flex; flex-direction:column; }
+  .app-header { padding:12px 18px 10px; border-bottom:1px solid var(--border);
+    background:var(--bg); position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .brand { font-family:'Fraunces',serif; font-weight:800; font-size:22px; letter-spacing:-0.02em; }
+  .brand span { color:var(--accent); }
+  .header-actions { display:flex; gap:8px; align-items:center; }
+  .sync-indicator { display:flex; align-items:center; gap:4px; font-size:11px;
+    color:var(--text-faint); padding:4px 8px; border-radius:12px; border:1px solid var(--border); }
+  .sync-indicator.syncing { color:var(--warn); border-color:var(--warn); }
+  .sync-indicator.ok { color:var(--success); border-color:var(--success); }
+  .sync-indicator.error { color:var(--danger); border-color:var(--danger); }
+  .sync-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .sync-indicator.syncing .sync-dot { animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+  .icon-btn { background:var(--bg-elev); border:1px solid var(--border); color:var(--text);
+    width:34px; height:34px; border-radius:var(--radius);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; }
+  .icon-btn:active { transform:scale(0.95); background:var(--bg-elev-2); }
+  .icon-btn svg { width:18px; height:18px; }
+  .tabs { display:flex; background:var(--bg); border-bottom:1px solid var(--border);
+    position:sticky; top:59px; z-index:40; }
+  .tab { flex:1; padding:12px 8px; text-align:center; font-size:13px; font-weight:600;
+    color:var(--text-dim); background:transparent; border:none;
+    border-bottom:2px solid transparent; cursor:pointer; transition:color 0.15s,border-color 0.15s;
+    font-family:inherit; text-transform:uppercase; letter-spacing:0.06em; }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab .count { display:inline-block; margin-left:4px;
+    font-family:'JetBrains Mono',monospace; font-weight:500; color:var(--text-faint); font-size:12px; }
+  .tab.active .count { color:var(--accent-dim); }
+  .toolbar { padding:10px 16px; background:var(--bg);
+    display:flex; gap:8px; border-bottom:1px solid var(--border); }
+  .search-input { flex:1; background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:8px 14px; color:var(--text);
+    font-family:inherit; font-size:14px; outline:none; }
+  .search-input:focus { border-color:var(--accent); }
+  .search-input::placeholder { color:var(--text-faint); }
+  .sort-btn { background:var(--bg-elev); border:1px solid var(--border); color:var(--text);
+    padding:0 12px; border-radius:var(--radius); font-size:13px;
+    font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .sort-btn:active { background:var(--bg-elev-2); }
+  main { flex:1; padding:16px; overflow-y:auto; }
+  .empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
+  .empty h3 { font-family:'Fraunces',serif; font-weight:600; margin:0 0 8px; color:var(--text); }
+  .empty p { margin:0; font-size:14px; }
+  .item-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media (min-width:640px){.item-grid{grid-template-columns:repeat(3,1fr);}}
+  @media (min-width:900px){.item-grid{grid-template-columns:repeat(4,1fr);}}
+  .card { background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); overflow:hidden; cursor:pointer;
+    transition:transform 0.1s,border-color 0.15s; }
+  .card:active { transform:scale(0.98); }
+  .card-cover { width:100%; aspect-ratio:1; background:var(--bg-elev-2);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+  .card-cover img { width:100%; height:100%; object-fit:cover; }
+  .card-cover .placeholder { color:var(--text-faint); font-family:'Fraunces',serif; font-size:32px; }
+  .card-type-badge { position:absolute; top:6px; right:6px;
+    background:rgba(15,15,16,0.85); backdrop-filter:blur(4px); color:var(--accent);
+    padding:3px 8px; border-radius:4px; font-size:10px; font-weight:600;
+    letter-spacing:0.08em; text-transform:uppercase; }
+  .card-body { padding:10px 12px; }
+  .card-title { font-weight:600; font-size:14px; margin:0 0 2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .card-sub { font-size:12px; color:var(--text-dim); margin:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fab { position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom));
+    width:56px; height:56px; border-radius:50%; background:var(--accent); color:var(--bg);
+    border:none; box-shadow:0 6px 20px rgba(226,130,19,0.4); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:60; transition:transform 0.1s; }
+  .fab:active { transform:scale(0.92); }
+  .fab svg { width:26px; height:26px; }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    z-index:100; display:none; align-items:flex-end; justify-content:center; }
+  .modal-backdrop.open { display:flex; }
+  .modal { background:var(--bg); width:100%; max-width:600px; max-height:100vh;
+    border-radius:16px 16px 0 0; overflow-y:auto;
+    animation:slideUp 0.25s ease-out; padding-bottom:env(safe-area-inset-bottom); }
+  @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+  .modal-header { padding:12px 18px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; background:var(--bg); z-index:1; }
+  .modal-title { font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin:0; }
+  .modal-body { padding:14px 18px 18px; }
+  .field { margin-bottom:10px; }
+  .field-label { display:block; font-size:11px; font-weight:600;
+    color:var(--text-dim); margin-bottom:4px;
+    text-transform:uppercase; letter-spacing:0.06em; }
+  .field-label .req { color:var(--accent); }
+  .field-input,.field-textarea,.field-select { width:100%; background:var(--bg-elev);
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:8px 12px; color:var(--text); font-family:inherit; font-size:14px; outline:none; }
+  .field-input:focus,.field-textarea:focus,.field-select:focus { border-color:var(--accent); }
+  .field-textarea { resize:vertical; min-height:50px; }
+  .type-toggle { display:flex; gap:8px; margin-bottom:12px; }
+  .type-toggle button { flex:1; background:var(--bg-elev); border:1px solid var(--border);
+    color:var(--text-dim); padding:8px; border-radius:var(--radius);
+    font-family:inherit; font-weight:600; font-size:13px; cursor:pointer;
+    text-transform:uppercase; letter-spacing:0.06em; }
+  .type-toggle button.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .image-picker { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:12px; }
+  .image-slot { aspect-ratio:4/3; background:var(--bg-elev);
+    border:1px dashed var(--border); border-radius:var(--radius);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; flex-direction:column;
+    color:var(--text-faint); font-size:11px; text-align:center; overflow:hidden; position:relative; }
+  .image-slot img { width:100%; height:100%; object-fit:cover; }
+  .image-slot .slot-label { position:absolute; bottom:4px; left:4px; right:4px;
+    background:rgba(15,15,16,0.85); color:var(--text);
+    padding:2px 6px; border-radius:4px; font-size:10px;
+    text-transform:uppercase; letter-spacing:0.06em; }
+  .image-slot svg { width:22px; height:22px; margin-bottom:2px; }
+  .image-actions { position:absolute; top:4px; right:4px; display:flex; gap:4px; }
+  .image-action-btn { background:rgba(15,15,16,0.85); color:var(--text); border:none;
+    border-radius:4px; width:24px; height:24px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .image-action-btn svg { width:12px; height:12px; margin:0; }
+  .title-field-wrap { position:relative; }
+  .autocomplete-list { position:absolute; top:calc(100% + 4px); left:0; right:0;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius);
+    max-height:320px; overflow-y:auto; z-index:5; box-shadow:var(--shadow); display:none; }
+  .autocomplete-list.open { display:block; }
+  .autocomplete-item { display:flex; align-items:center; gap:10px; padding:8px 10px;
+    cursor:pointer; border-bottom:1px solid var(--border); }
+  .autocomplete-item:last-child { border-bottom:none; }
+  .autocomplete-item:active,.autocomplete-item:hover { background:var(--bg-elev-2); }
+  .autocomplete-thumb { width:42px; height:42px; border-radius:4px;
+    background:var(--bg-elev-2); flex-shrink:0; object-fit:cover;
+    display:flex; align-items:center; justify-content:center; color:var(--text-faint); font-family:'Fraunces',serif; }
+  .autocomplete-text { flex:1; min-width:0; }
+  .autocomplete-title { font-size:14px; font-weight:500; color:var(--text);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .autocomplete-sub { font-size:12px; color:var(--text-dim);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .autocomplete-status { padding:10px; text-align:center; color:var(--text-dim); font-size:13px; }
+  .barcode-row { display:flex; gap:8px; }
+  .barcode-row .field-input { flex:1; }
+  .barcode-btn { background:var(--bg-elev); border:1px solid var(--border); color:var(--text);
+    padding:0 14px; border-radius:var(--radius); cursor:pointer; font-family:inherit;
+    font-size:13px; font-weight:500; white-space:nowrap;
+    display:flex; align-items:center; gap:6px; }
+  .barcode-btn:active { background:var(--bg-elev-2); }
+  .barcode-btn svg { width:16px; height:16px; }
+  .btn-row { display:flex; gap:10px; margin-top:14px; }
+  .btn { flex:1; padding:11px; border-radius:var(--radius);
+    font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    border:1px solid transparent; }
+  .btn-primary { background:var(--accent); color:var(--bg); }
+  .btn-secondary { background:var(--bg-elev); color:var(--text); border-color:var(--border); }
+  .btn-danger { background:var(--danger); color:white; }
+  .btn:active { transform:scale(0.98); }
+  .detail-cover { width:100%; max-width:360px; aspect-ratio:1; margin:0 auto 20px;
+    background:var(--bg-elev); border-radius:var(--radius); overflow:hidden;
+    display:flex; align-items:center; justify-content:center; }
+  .detail-cover img { width:100%; height:100%; object-fit:cover; }
+  .detail-secondary-img { width:100%; max-width:240px; aspect-ratio:1; margin:0 auto 20px;
+    background:var(--bg-elev); border-radius:var(--radius); overflow:hidden; }
+  .detail-secondary-img img { width:100%; height:100%; object-fit:cover; }
+  .detail-title { font-family:'Fraunces',serif; font-size:26px; font-weight:600;
+    margin:0 0 4px; line-height:1.2; }
+  .detail-artist { color:var(--text-dim); font-size:16px; margin:0 0 16px; }
+  .detail-meta { display:grid; gap:12px;
+    background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+  .meta-row { display:flex; justify-content:space-between;
+    align-items:baseline; gap:12px; font-size:14px; }
+  .meta-row .meta-label { color:var(--text-dim); font-size:12px;
+    text-transform:uppercase; letter-spacing:0.06em; font-weight:600; }
+  .meta-row .meta-value { text-align:right; word-break:break-word; }
+  .note-block { background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:16px;
+    white-space:pre-wrap; font-size:14px; line-height:1.5; }
+  .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%);
+    background:var(--bg-elev-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 18px; border-radius:var(--radius); font-size:13px;
+    z-index:200; box-shadow:var(--shadow); animation:toastIn 0.2s; max-width:90vw; }
+  .toast.success { border-color:var(--success); }
+  .toast.error { border-color:var(--danger); }
+  @keyframes toastIn { from{opacity:0;transform:translate(-50%,-10px);}
+                       to{opacity:1;transform:translate(-50%,0);} }
+  .sort-menu { background:var(--bg-elev); border-radius:var(--radius); padding:4px; width:100%; }
+  .sort-option { width:100%; background:transparent; border:none; color:var(--text);
+    padding:12px; text-align:left; cursor:pointer; border-radius:6px;
+    font-family:inherit; font-size:14px;
+    display:flex; justify-content:space-between; align-items:center; }
+  .sort-option:active { background:var(--bg-elev-2); }
+  .sort-option .check { color:var(--accent); }
+  #scannerVideo { width:100%; max-height:60vh; border-radius:var(--radius); background:black; }
+  .scanner-info { text-align:center; color:var(--text-dim); font-size:13px; margin:12px 0; }
+  .settings-list { list-style:none; padding:0; margin:0; }
+  .settings-item { background:var(--bg-elev); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:10px; }
+  .settings-item h4 { margin:0 0 6px; font-size:14px; font-weight:600; }
+  .settings-item p { margin:0 0 10px; font-size:13px; color:var(--text-dim); }
+  .settings-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+  .settings-buttons .btn { flex:0 1 auto; padding:8px 14px; font-size:13px; }
+  details.advanced summary { cursor:pointer; padding:14px;
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius);
+    list-style:none; font-size:14px; font-weight:600;
+    display:flex; justify-content:space-between; align-items:center; }
+  details.advanced summary::-webkit-details-marker { display:none; }
+  details.advanced summary::after { content:'▾'; color:var(--text-dim); transition:transform 0.15s; }
+  details.advanced[open] summary::after { transform:rotate(180deg); }
+  details.advanced { margin-bottom:10px; }
+  details.advanced > div { background:var(--bg-elev); border:1px solid var(--border);
+    border-top:none; border-radius:0 0 var(--radius) var(--radius);
+    padding:14px; margin-top:-1px; }
+  .status-pill { display:inline-block; font-size:11px; padding:2px 8px;
+    border-radius:10px; border:1px solid currentColor; }
+  .status-pill.connected { color:var(--success); }
+  .status-pill.disconnected { color:var(--text-faint); }
+  .hidden-input { display:none; }
+  .spinner { width:16px; height:16px;
+    border:2px solid var(--border); border-top-color:var(--accent);
+    border-radius:50%; animation:spin 0.7s linear infinite;
+    display:inline-block; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .wizard-step { display:none; }
+  .wizard-step.active { display:block; }
+  .wizard-progress { display:flex; gap:4px; margin-bottom:16px; }
+  .wizard-dot { flex:1; height:3px; background:var(--bg-elev-2); border-radius:2px; }
+  .wizard-dot.active { background:var(--accent); }
+  .wizard-hint { font-size:12px; color:var(--text-faint); margin:6px 0 12px; line-height:1.5; }
+  .wizard-hint code { background:var(--bg-elev-2); padding:1px 5px; border-radius:3px;
+    font-family:'JetBrains Mono',monospace; font-size:11px; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">the j stash<span>.</span></div>
+  <div class="header-actions">
+    <div class="sync-indicator" id="syncIndicator" title="Cloud sync status">
+      <span class="sync-dot"></span><span id="syncText">…</span>
+    </div>
+    <button class="icon-btn" id="quickScanBtn" title="Scan barcode" aria-label="Scan barcode">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="all">All <span class="count" id="countAll">0</span></button>
+  <button class="tab" data-tab="dvd">DVDs <span class="count" id="countDvd">0</span></button>
+  <button class="tab" data-tab="vinyl">Vinyl <span class="count" id="countVinyl">0</span></button>
+</nav>
+
+<div class="toolbar">
+  <input type="search" class="search-input" id="searchInput" placeholder="Search title, artist, genre, barcode, notes...">
+  <button class="sort-btn" id="sortBtn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 6h18M6 12h12M10 18h4"/>
+    </svg>
+    Sort
+  </button>
+</div>
+
+<main id="mainContent">
+  <div class="empty"><h3>Loading…</h3></div>
+</main>
+
+<button class="fab" id="addBtn" aria-label="Add new entry">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+</button>
+
+<div class="modal-backdrop" id="wizardModal">
+  <div class="modal">
+    <div class="modal-header"><h2 class="modal-title">Set Up The J Stash</h2></div>
+    <div class="modal-body">
+      <div class="wizard-progress">
+        <div class="wizard-dot active" data-step="1"></div>
+        <div class="wizard-dot" data-step="2"></div>
+        <div class="wizard-dot" data-step="3"></div>
+      </div>
+      <div class="wizard-step active" data-step="1">
+        <p>Your data lives in a private GitHub repo. This way it survives anything Brave does to local storage.</p>
+        <p style="margin-top:12px;">You'll need:</p>
+        <ul style="font-size:13px; color:var(--text-dim); padding-left:18px; line-height:1.8;">
+          <li>A private GitHub repo for your data (separate from the app)</li>
+          <li>A fine-grained Personal Access Token with Contents read/write access to that repo</li>
+        </ul>
+        <p class="wizard-hint">No data yet? Just create an empty private repo — the app will populate it.</p>
+        <div class="btn-row"><button class="btn btn-primary" id="wizNext1">Continue</button></div>
+      </div>
+      <div class="wizard-step" data-step="2">
+        <p>Paste your GitHub access info:</p>
+        <div class="field" style="margin-top:10px;">
+          <label class="field-label">GitHub Username (Owner) <span class="req">*</span></label>
+          <input type="text" class="field-input" id="wizOwner" placeholder="e.g. jmile06">
+        </div>
+        <div class="field">
+          <label class="field-label">Repository Name <span class="req">*</span></label>
+          <input type="text" class="field-input" id="wizRepo" placeholder="e.g. TheJStashData">
+        </div>
+        <div class="field">
+          <label class="field-label">Branch</label>
+          <input type="text" class="field-input" id="wizBranch" placeholder="main" value="main">
+        </div>
+        <div class="field">
+          <label class="field-label">Fine-grained Personal Access Token <span class="req">*</span></label>
+          <input type="password" class="field-input" id="wizToken" placeholder="github_pat_...">
+        </div>
+        <p class="wizard-hint">Token must have <code>Contents: Read &amp; Write</code> for this repo. Get one at github.com/settings/tokens?type=beta</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="wizBack2">Back</button>
+          <button class="btn btn-primary" id="wizNext2">Test &amp; Continue</button>
+        </div>
+      </div>
+      <div class="wizard-step" data-step="3">
+        <p>Connection looks good. Optionally add API tokens for richer lookups (you can skip and add later from Settings → Advanced):</p>
+        <div class="field" style="margin-top:10px;">
+          <label class="field-label">Discogs Token (for vinyl)</label>
+          <input type="text" class="field-input" id="wizDiscogs" placeholder="Get from discogs.com/settings/developers">
+        </div>
+        <div class="field">
+          <label class="field-label">TMDB API Key (for DVD title search)</label>
+          <input type="text" class="field-input" id="wizTmdb" placeholder="Get from themoviedb.org/settings/api">
+        </div>
+        <p class="wizard-hint">Tokens save to your config file in GitHub. They persist across Brave wipes.</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="wizBack3">Back</button>
+          <button class="btn btn-primary" id="wizFinish">Finish Setup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="formModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="formTitle">New Entry</h2>
+      <button class="icon-btn" id="closeForm" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="type-toggle">
+        <button id="typeDvd" data-type="dvd" class="active">DVD</button>
+        <button id="typeVinyl" data-type="vinyl">Vinyl</button>
+      </div>
+      <div class="image-picker">
+        <div class="image-slot" id="coverSlot" data-slot="cover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <span>Cover</span><span class="slot-label">Cover</span>
+        </div>
+        <div class="image-slot" id="secondarySlot" data-slot="secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span>Disc (optional)</span><span class="slot-label">Disc</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Barcode</label>
+        <div class="barcode-row">
+          <input type="text" class="field-input" id="fldBarcode" inputmode="numeric" placeholder="Type or scan">
+          <button class="barcode-btn" id="scanBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h2v14h-2zM21 5v14"/>
+            </svg>Scan
+          </button>
+          <button class="barcode-btn" id="lookupBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg><span id="lookupBtnLabel">Lookup</span>
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" id="titleLabel">Title <span class="req">*</span></label>
+        <div class="title-field-wrap">
+          <input type="text" class="field-input" id="fldTitle" required autocomplete="off">
+          <div class="autocomplete-list" id="titleAutocomplete" role="listbox"></div>
+        </div>
+      </div>
+      <div class="field" id="artistField" style="display:none;">
+        <label class="field-label">Artist <span class="req">*</span></label>
+        <input type="text" class="field-input" id="fldArtist">
+      </div>
+      <div class="field">
+        <label class="field-label">Genre</label>
+        <input type="text" class="field-input" id="fldGenre" placeholder="e.g. Jazz, Action, Comedy">
+      </div>
+      <div class="field">
+        <label class="field-label">Note</label>
+        <textarea class="field-textarea" id="fldNote" placeholder="Edition, condition, where you bought it..."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="cancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Details</h2>
+      <button class="icon-btn" id="closeDetail" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="sortModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Sort by</h2>
+      <button class="icon-btn" id="closeSort" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body"><div class="sort-menu" id="sortMenu"></div></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Settings</h2>
+      <button class="icon-btn" id="closeSettings" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <ul class="settings-list">
+        <li class="settings-item">
+          <h4>Cloud Sync</h4>
+          <p id="syncStatus">Status: <span class="status-pill disconnected">Checking…</span></p>
+          <p id="syncDetails" style="margin-top:6px; font-size:12px; color:var(--text-faint);"></p>
+          <div class="settings-buttons" style="margin-top:8px;">
+            <button class="btn btn-secondary" id="pullNowBtn">Pull from GitHub</button>
+            <button class="btn btn-secondary" id="pushNowBtn">Push to GitHub</button>
+          </div>
+        </li>
+        <details class="advanced">
+          <summary>Advanced — API Tokens &amp; Connection</summary>
+          <div>
+            <p style="font-size:12px; color:var(--text-faint); margin:0 0 12px;">These save to your private GitHub config file, not local storage. They persist across browser wipes.</p>
+            <div class="field">
+              <label class="field-label">Discogs Token</label>
+              <input type="text" class="field-input" id="advDiscogs" placeholder="(empty)">
+            </div>
+            <div class="field">
+              <label class="field-label">TMDB API Key</label>
+              <input type="text" class="field-input" id="advTmdb" placeholder="(empty)">
+            </div>
+            <div class="btn-row" style="margin-top:0;">
+              <button class="btn btn-primary" id="saveAdvTokensBtn">Save to GitHub</button>
+            </div>
+            <hr style="border:none; border-top:1px solid var(--border); margin:14px 0;">
+            <p style="font-size:12px; color:var(--text-faint); margin:0 0 8px;">GitHub connection details (stored locally; required after browser wipe):</p>
+            <div class="field">
+              <label class="field-label">Owner</label>
+              <input type="text" class="field-input" id="advOwner">
+            </div>
+            <div class="field">
+              <label class="field-label">Repo</label>
+              <input type="text" class="field-input" id="advRepo">
+            </div>
+            <div class="field">
+              <label class="field-label">Branch</label>
+              <input type="text" class="field-input" id="advBranch">
+            </div>
+            <div class="field">
+              <label class="field-label">Access Token</label>
+              <input type="password" class="field-input" id="advToken">
+            </div>
+            <div class="btn-row" style="margin-top:0;">
+              <button class="btn btn-secondary" id="saveGhConnBtn">Save Connection</button>
+            </div>
+          </div>
+        </details>
+        <li class="settings-item">
+          <h4>About</h4>
+          <p>The J Stash. Your library and config live in a private GitHub repo as the source of truth. The local app reads on launch and writes back on every change.</p>
+        </li>
+      </ul>
+      <div class="btn-row"><button class="btn btn-primary" id="settingsDoneBtn" type="button">Done</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="scannerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Scan Barcode</h2>
+      <button class="icon-btn" id="closeScanner" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <video id="scannerVideo" autoplay muted playsinline></video>
+      <p class="scanner-info" id="scannerInfo">Point camera at barcode</p>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden-input">
+<input type="file" id="galleryInput" accept="image/*" class="hidden-input">
+
+<script>
+/* The J Stash — Cloud-First (GitHub source of truth, localStorage cache) */
+
+const LIBRARY_PATH = 'data/library.json';
+const CONFIG_PATH = 'data/config.json';
+const LS_KEYS = {
+  ghToken: 'jstash_gh_token',
+  ghOwner: 'jstash_gh_owner',
+  ghRepo: 'jstash_gh_repo',
+  ghBranch: 'jstash_gh_branch',
+  libraryCache: 'jstash_library_cache',
+  configCache: 'jstash_config_cache',
+  librarySha: 'jstash_library_sha',
+  configSha: 'jstash_config_sha',
+};
+function ghCfg() {
+  return {
+    token: localStorage.getItem(LS_KEYS.ghToken) || '',
+    owner: localStorage.getItem(LS_KEYS.ghOwner) || '',
+    repo: localStorage.getItem(LS_KEYS.ghRepo) || '',
+    branch: localStorage.getItem(LS_KEYS.ghBranch) || 'main',
+  };
+}
+function setGhCfg(o) {
+  if (o.token != null) localStorage.setItem(LS_KEYS.ghToken, o.token);
+  if (o.owner != null) localStorage.setItem(LS_KEYS.ghOwner, o.owner);
+  if (o.repo != null) localStorage.setItem(LS_KEYS.ghRepo, o.repo);
+  if (o.branch != null) localStorage.setItem(LS_KEYS.ghBranch, o.branch);
+}
+function isConfigured() {
+  const c = ghCfg();
+  return !!(c.token && c.owner && c.repo);
+}
+
+const state = {
+  items: [],
+  config: { discogs_token: '', tmdb_token: '' },
+  tab: 'all', search: '', sortKey: 'addedAt', sortDir: 'desc',
+  editingId: null, formType: 'dvd',
+  formImages: { cover: null, secondary: null },
+  imageTarget: null,
+  scannerActive: false, scannerStream: null, scannerDetector: null,
+  scannerLoop: null, scannerReady: false, scannerMode: 'inForm',
+  syncStatus: 'init', syncErrorMessage: '',
+};
+
+function uid() {
+  return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+function showToast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+function compressImage(file, maxDim = 1100, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width >= height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+          else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function urlToCompressedDataURL(url, maxDim = 1000, quality = 0.85) {
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('fetch failed');
+    const blob = await resp.blob();
+    const file = new File([blob], 'cover.jpg', { type: blob.type || 'image/jpeg' });
+    return await compressImage(file, maxDim, quality);
+  } catch (e) { return null; }
+}
+
+// ----- GitHub API -----
+async function ghReadFile(path) {
+  const c = ghCfg();
+  const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}?ref=${encodeURIComponent(c.branch)}`;
+  const resp = await fetch(url, {
+    headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json' },
+  });
+  if (resp.status === 404) return { exists: false, content: null, sha: null };
+  if (!resp.ok) {
+    const errTxt = await resp.text();
+    throw new Error(`GitHub read ${resp.status}: ${errTxt.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+  return { exists: true, content, sha: data.sha };
+}
+async function ghWriteFile(path, content, sha, message) {
+  const c = ghCfg();
+  const b64 = btoa(unescape(encodeURIComponent(content)));
+  const body = { message: message || `Update ${path}`, content: b64, branch: c.branch };
+  if (sha) body.sha = sha;
+  const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
+  const resp = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Bearer ' + c.token,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const errTxt = await resp.text();
+    throw new Error(`GitHub write ${resp.status}: ${errTxt.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  return data.content && data.content.sha;
+}
+
+// ----- Sync UI -----
+function setSyncStatus(status, message) {
+  state.syncStatus = status;
+  state.syncErrorMessage = message || '';
+  const ind = document.getElementById('syncIndicator');
+  const text = document.getElementById('syncText');
+  if (!ind || !text) return;
+  ind.classList.remove('syncing', 'ok', 'error');
+  switch (status) {
+    case 'syncing': ind.classList.add('syncing'); text.textContent = 'Sync'; break;
+    case 'ok': ind.classList.add('ok'); text.textContent = 'Synced'; break;
+    case 'error': ind.classList.add('error'); text.textContent = 'Sync error'; break;
+    case 'offline': ind.classList.add('error'); text.textContent = 'Offline'; break;
+    default: text.textContent = '…';
+  }
+  refreshSettingsSyncUI();
+}
+function refreshSettingsSyncUI() {
+  const statusEl = document.getElementById('syncStatus');
+  const detailsEl = document.getElementById('syncDetails');
+  if (!statusEl) return;
+  const c = ghCfg();
+  const pillClass = state.syncStatus === 'ok' ? 'connected' : 'disconnected';
+  const pillText = state.syncStatus === 'ok' ? 'Connected' :
+                   state.syncStatus === 'syncing' ? 'Syncing…' :
+                   state.syncStatus === 'error' ? 'Error' :
+                   state.syncStatus === 'offline' ? 'Offline' : 'Not connected';
+  statusEl.innerHTML = `Status: <span class="status-pill ${pillClass}">${pillText}</span>`;
+  if (c.owner && c.repo) {
+    detailsEl.textContent = `Repo: ${c.owner}/${c.repo} (branch: ${c.branch})${state.syncErrorMessage ? ' — ' + state.syncErrorMessage : ''}`;
+  } else {
+    detailsEl.textContent = 'Not configured. Use the setup wizard or fill in details under Advanced.';
+  }
+}
+
+// ----- Local cache -----
+function loadLocalCache() {
+  try {
+    const lib = localStorage.getItem(LS_KEYS.libraryCache);
+    if (lib) {
+      const parsed = JSON.parse(lib);
+      if (parsed && Array.isArray(parsed.items)) state.items = parsed.items;
+    }
+    const cfg = localStorage.getItem(LS_KEYS.configCache);
+    if (cfg) {
+      const parsed = JSON.parse(cfg);
+      if (parsed) state.config = { ...state.config, ...parsed };
+    }
+  } catch (e) { console.warn('Cache load failed:', e); }
+}
+function saveLocalCache() {
+  try {
+    localStorage.setItem(LS_KEYS.libraryCache, JSON.stringify({ items: state.items }));
+    localStorage.setItem(LS_KEYS.configCache, JSON.stringify(state.config));
+  } catch (e) { console.warn('Cache save failed:', e); }
+}
+
+// ----- Cloud sync -----
+async function pullFromCloud() {
+  if (!isConfigured()) return;
+  setSyncStatus('syncing');
+  try {
+    const libResult = await ghReadFile(LIBRARY_PATH);
+    if (libResult.exists) {
+      const parsed = JSON.parse(libResult.content);
+      if (parsed && Array.isArray(parsed.items)) {
+        state.items = parsed.items;
+        localStorage.setItem(LS_KEYS.librarySha, libResult.sha);
+      }
+    } else {
+      state.items = [];
+      localStorage.removeItem(LS_KEYS.librarySha);
+    }
+    const cfgResult = await ghReadFile(CONFIG_PATH);
+    if (cfgResult.exists) {
+      const parsed = JSON.parse(cfgResult.content);
+      if (parsed) {
+        state.config = { ...state.config, ...parsed };
+        localStorage.setItem(LS_KEYS.configSha, cfgResult.sha);
+      }
+    } else {
+      localStorage.removeItem(LS_KEYS.configSha);
+    }
+    saveLocalCache();
+    setSyncStatus('ok');
+    renderAll();
+  } catch (err) {
+    console.error('Pull failed:', err);
+    setSyncStatus('error', err.message);
+    throw err;
+  }
+}
+
+let libraryPushTimer = null;
+function schedulePushLibrary() {
+  clearTimeout(libraryPushTimer);
+  libraryPushTimer = setTimeout(() => {
+    pushLibrary().catch(err => {
+      console.warn('Library push failed:', err);
+      setSyncStatus('error', err.message);
+    });
+  }, 2000);
+}
+async function pushLibrary() {
+  if (!isConfigured()) return;
+  setSyncStatus('syncing');
+  const payload = {
+    app: 'the_j_stash', version: 2,
+    exportedAt: new Date().toISOString(),
+    items: state.items,
+  };
+  try {
+    const sha = localStorage.getItem(LS_KEYS.librarySha);
+    const newSha = await ghWriteFile(LIBRARY_PATH,
+      JSON.stringify(payload, null, 2), sha,
+      `Library update: ${state.items.length} items`);
+    if (newSha) localStorage.setItem(LS_KEYS.librarySha, newSha);
+    saveLocalCache();
+    setSyncStatus('ok');
+  } catch (err) {
+    if (err.message.includes('409')) {
+      try { await pullFromCloud(); showToast('Pulled newer version from GitHub. Re-apply your changes.', 'error'); } catch {}
+    } else {
+      setSyncStatus('error', err.message);
+      showToast('Sync failed: ' + err.message, 'error');
+    }
+  }
+}
+async function pushConfig() {
+  if (!isConfigured()) return;
+  setSyncStatus('syncing');
+  try {
+    const sha = localStorage.getItem(LS_KEYS.configSha);
+    const newSha = await ghWriteFile(CONFIG_PATH,
+      JSON.stringify(state.config, null, 2), sha, 'Update config');
+    if (newSha) localStorage.setItem(LS_KEYS.configSha, newSha);
+    saveLocalCache();
+    setSyncStatus('ok');
+  } catch (err) {
+    setSyncStatus('error', err.message);
+    throw err;
+  }
+}
+
+// ----- Render -----
+function getFiltered() {
+  let list = state.items;
+  if (state.tab === 'dvd') list = list.filter(i => i.type === 'dvd');
+  if (state.tab === 'vinyl') list = list.filter(i => i.type === 'vinyl');
+  const q = state.search.trim().toLowerCase();
+  if (q) {
+    list = list.filter(i => {
+      const fields = [i.title, i.artist, i.genre, i.barcode, i.note, i.type];
+      return fields.some(f => f && String(f).toLowerCase().includes(q));
+    });
+  }
+  const dir = state.sortDir === 'asc' ? 1 : -1;
+  const key = state.sortKey;
+  list = [...list].sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if (key === 'addedAt') { av = av || 0; bv = bv || 0; return (av - bv) * dir; }
+    av = (av || '').toString().toLowerCase();
+    bv = (bv || '').toString().toLowerCase();
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+  return list;
+}
+function renderCounts() {
+  const dvds = state.items.filter(i => i.type === 'dvd').length;
+  const vinyls = state.items.filter(i => i.type === 'vinyl').length;
+  document.getElementById('countAll').textContent = state.items.length;
+  document.getElementById('countDvd').textContent = dvds;
+  document.getElementById('countVinyl').textContent = vinyls;
+}
+function renderList() {
+  const main = document.getElementById('mainContent');
+  const items = getFiltered();
+  if (items.length === 0) {
+    main.innerHTML = `<div class="empty"><h3>${state.search ? 'No matches' : 'Nothing here yet'}</h3>
+      <p>${state.search ? 'Try a different search.' : 'Tap the + button to add your first entry.'}</p></div>`;
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'item-grid';
+  for (const it of items) {
+    const card = document.createElement('div');
+    card.className = 'card'; card.dataset.id = it.id;
+    const cover = it.cover ? `<img src="${it.cover}" alt="" loading="lazy">`
+                           : `<span class="placeholder">${it.type === 'vinyl' ? '◉' : '▣'}</span>`;
+    const sub = it.type === 'vinyl' ? escapeHtml(it.artist || '—')
+                                    : (it.genre ? escapeHtml(it.genre) : 'DVD');
+    card.innerHTML = `<div class="card-cover">${cover}
+      <span class="card-type-badge">${it.type === 'vinyl' ? 'LP' : 'DVD'}</span></div>
+      <div class="card-body"><p class="card-title">${escapeHtml(it.title || 'Untitled')}</p>
+      <p class="card-sub">${sub}</p></div>`;
+    card.addEventListener('click', () => openDetail(it.id));
+    grid.appendChild(card);
+  }
+  main.innerHTML = '';
+  main.appendChild(grid);
+}
+function renderAll() { renderCounts(); renderList(); }
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.tab = btn.dataset.tab;
+    renderList();
+  });
+});
+
+const searchInput = document.getElementById('searchInput');
+let searchTimer = null;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.search = searchInput.value;
+    renderList();
+  }, 120);
+});
+
+const SORT_OPTIONS = [
+  { key: 'addedAt', label: 'Date added (newest)', dir: 'desc' },
+  { key: 'addedAt', label: 'Date added (oldest)', dir: 'asc' },
+  { key: 'title', label: 'Title (A→Z)', dir: 'asc' },
+  { key: 'title', label: 'Title (Z→A)', dir: 'desc' },
+  { key: 'artist', label: 'Artist (A→Z)', dir: 'asc' },
+  { key: 'artist', label: 'Artist (Z→A)', dir: 'desc' },
+  { key: 'genre', label: 'Genre (A→Z)', dir: 'asc' },
+  { key: 'barcode', label: 'Barcode', dir: 'asc' },
+  { key: 'type', label: 'Type', dir: 'asc' },
+];
+function renderSortMenu() {
+  const menu = document.getElementById('sortMenu');
+  menu.innerHTML = '';
+  for (const opt of SORT_OPTIONS) {
+    const btn = document.createElement('button');
+    btn.className = 'sort-option';
+    const active = state.sortKey === opt.key && state.sortDir === opt.dir;
+    btn.innerHTML = `<span>${opt.label}</span>${active ? '<span class="check">●</span>' : ''}`;
+    btn.addEventListener('click', () => {
+      state.sortKey = opt.key; state.sortDir = opt.dir;
+      closeModal('sortModal'); renderList();
+    });
+    menu.appendChild(btn);
+  }
+}
+document.getElementById('sortBtn').addEventListener('click', () => {
+  renderSortMenu(); openModal('sortModal');
+});
+document.getElementById('closeSort').addEventListener('click', () => closeModal('sortModal'));
+
+// ----- Modal helpers -----
+const modalStack = [];
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+  modalStack.push(id);
+  history.pushState({ modal: id }, '');
+}
+function closeModal(id, skipHistory) {
+  const el = document.getElementById(id);
+  if (!el || !el.classList.contains('open')) return;
+  el.classList.remove('open');
+  const idx = modalStack.lastIndexOf(id);
+  if (idx >= 0) modalStack.splice(idx, 1);
+  if (modalStack.length === 0) document.body.style.overflow = '';
+  if (!closeModal._fromPop && !skipHistory) {
+    try { history.back(); } catch {}
+  }
+}
+window.addEventListener('popstate', () => {
+  if (modalStack.length > 0) {
+    const top = modalStack[modalStack.length - 1];
+    closeModal._fromPop = true;
+    closeModal(top);
+    closeModal._fromPop = false;
+  }
+});
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => {
+    if (e.target === bd && bd.id !== 'wizardModal') closeModal(bd.id);
+  });
+});
+
+// ----- Form -----
+const formModal = 'formModal';
+const fld = {
+  title: document.getElementById('fldTitle'),
+  artist: document.getElementById('fldArtist'),
+  genre: document.getElementById('fldGenre'),
+  barcode: document.getElementById('fldBarcode'),
+  note: document.getElementById('fldNote'),
+};
+
+function setFormType(type) {
+  state.formType = type;
+  document.getElementById('typeDvd').classList.toggle('active', type === 'dvd');
+  document.getElementById('typeVinyl').classList.toggle('active', type === 'vinyl');
+  document.getElementById('artistField').style.display = type === 'vinyl' ? '' : 'none';
+  refreshImageSlot('secondary');
+}
+document.getElementById('typeDvd').addEventListener('click', () => setFormType('dvd'));
+document.getElementById('typeVinyl').addEventListener('click', () => setFormType('vinyl'));
+
+function clearForm() {
+  state.editingId = null;
+  state.formImages = { cover: null, secondary: null };
+  fld.title.value = ''; fld.artist.value = '';
+  fld.genre.value = ''; fld.barcode.value = ''; fld.note.value = '';
+  setFormType('dvd');
+  refreshImageSlot('cover'); refreshImageSlot('secondary');
+  const ac = document.getElementById('titleAutocomplete');
+  if (ac) { ac.classList.remove('open'); ac.innerHTML = ''; }
+  document.getElementById('formTitle').textContent = 'New Entry';
+}
+function loadFormFromItem(item) {
+  state.editingId = item.id;
+  state.formImages = { cover: item.cover || null, secondary: item.secondary || null };
+  fld.title.value = item.title || ''; fld.artist.value = item.artist || '';
+  fld.genre.value = item.genre || ''; fld.barcode.value = item.barcode || '';
+  fld.note.value = item.note || '';
+  setFormType(item.type);
+  refreshImageSlot('cover'); refreshImageSlot('secondary');
+  document.getElementById('formTitle').textContent = 'Edit Entry';
+}
+function refreshImageSlot(slot) {
+  const el = document.getElementById(slot === 'cover' ? 'coverSlot' : 'secondarySlot');
+  const fresh = el.cloneNode(false);
+  el.parentNode.replaceChild(fresh, el);
+  const img = state.formImages[slot];
+  if (img) {
+    fresh.innerHTML = `<img src="${img}" alt="">
+      <div class="image-actions">
+        <button class="image-action-btn" data-img-action="replace" data-slot="${slot}" type="button" aria-label="Replace">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.5-6.5L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.5L3 16"/><path d="M3 21v-5h5"/></svg>
+        </button>
+        <button class="image-action-btn" data-img-action="remove" data-slot="${slot}" type="button" aria-label="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <span class="slot-label">${slot === 'cover' ? 'Cover' : (state.formType === 'vinyl' ? 'Vinyl' : 'Disc')}</span>`;
+    fresh.querySelector('img').addEventListener('click', () => promptImagePick(slot));
+    fresh.querySelectorAll('[data-img-action]').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        if (b.dataset.imgAction === 'remove') {
+          state.formImages[slot] = null; refreshImageSlot(slot);
+        } else { promptImagePick(slot); }
+      });
+    });
+  } else {
+    const isVinyl = state.formType === 'vinyl';
+    const label = slot === 'cover' ? 'Cover' : (isVinyl ? 'Vinyl (optional)' : 'Disc (optional)');
+    const slotLabel = slot === 'cover' ? 'Cover' : (isVinyl ? 'Vinyl' : 'Disc');
+    fresh.innerHTML = slot === 'cover' ?
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>
+      </svg><span>${label}</span><span class="slot-label">${slotLabel}</span>` :
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+      </svg><span>${label}</span><span class="slot-label">${slotLabel}</span>`;
+    fresh.addEventListener('click', () => promptImagePick(slot));
+  }
+}
+function promptImagePick(slot) {
+  state.imageTarget = slot;
+  const choice = window.prompt('Image source — type "c" for camera, "g" for gallery:', 'c');
+  if (!choice) return;
+  if (choice.trim().toLowerCase().startsWith('g')) {
+    document.getElementById('galleryInput').click();
+  } else {
+    document.getElementById('cameraInput').click();
+  }
+}
+document.getElementById('cameraInput').addEventListener('change', handleImageInput);
+document.getElementById('galleryInput').addEventListener('change', handleImageInput);
+async function handleImageInput(e) {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file || !state.imageTarget) return;
+  try {
+    showToast('Processing image...');
+    const dataUrl = await compressImage(file, 1100, 0.85);
+    state.formImages[state.imageTarget] = dataUrl;
+    refreshImageSlot(state.imageTarget);
+  } catch (err) { showToast('Image error', 'error'); }
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const title = fld.title.value.trim();
+  if (!title) { showToast('Title required', 'error'); fld.title.focus(); return; }
+  if (state.formType === 'vinyl' && !fld.artist.value.trim()) {
+    showToast('Artist required for vinyl', 'error'); fld.artist.focus(); return;
+  }
+  if (!state.formImages.cover) { showToast('Cover image required', 'error'); return; }
+  const now = Date.now();
+  let id = state.editingId; let addedAt = now;
+  if (id) {
+    const existing = state.items.find(i => i.id === id);
+    if (existing) addedAt = existing.addedAt;
+  } else { id = uid(); }
+  const item = {
+    id, type: state.formType, title,
+    artist: state.formType === 'vinyl' ? fld.artist.value.trim() : '',
+    genre: fld.genre.value.trim(), barcode: fld.barcode.value.trim(),
+    note: fld.note.value.trim(),
+    cover: state.formImages.cover,
+    secondary: state.formImages.secondary || null,
+    addedAt, updatedAt: now,
+  };
+  const idx = state.items.findIndex(i => i.id === id);
+  if (idx >= 0) state.items[idx] = item; else state.items.push(item);
+  saveLocalCache();
+  closeModal(formModal);
+  renderAll();
+  schedulePushLibrary();
+  showToast(state.editingId ? 'Entry updated' : 'Entry saved', 'success');
+  state.editingId = null;
+});
+document.getElementById('cancelBtn').addEventListener('click', () => closeModal(formModal));
+document.getElementById('closeForm').addEventListener('click', () => closeModal(formModal));
+document.getElementById('addBtn').addEventListener('click', () => {
+  if (!isConfigured()) { showToast('Finish setup first', 'error'); openWizard(); return; }
+  clearForm(); openModal(formModal);
+});
+
+// ----- Detail -----
+function openDetail(id) {
+  const it = state.items.find(x => x.id === id);
+  if (!it) return;
+  const body = document.getElementById('detailBody');
+  const meta = [];
+  meta.push({ label: 'Type', value: it.type === 'vinyl' ? 'Vinyl' : 'DVD' });
+  if (it.type === 'vinyl') meta.push({ label: 'Artist', value: it.artist || '—' });
+  if (it.genre) meta.push({ label: 'Genre', value: it.genre });
+  if (it.barcode) meta.push({ label: 'Barcode', value: it.barcode });
+  meta.push({ label: 'Added', value: fmtDate(it.addedAt) });
+  if (it.updatedAt && it.updatedAt !== it.addedAt) meta.push({ label: 'Updated', value: fmtDate(it.updatedAt) });
+  body.innerHTML = `
+    <div class="detail-cover">${it.cover ? `<img src="${it.cover}" alt="">` : ''}</div>
+    <h2 class="detail-title">${escapeHtml(it.title || 'Untitled')}</h2>
+    ${it.type === 'vinyl' && it.artist ? `<p class="detail-artist">${escapeHtml(it.artist)}</p>` : ''}
+    ${it.secondary ? `<div class="detail-secondary-img"><img src="${it.secondary}" alt=""></div>` : ''}
+    <div class="detail-meta">
+      ${meta.map(m => `<div class="meta-row"><span class="meta-label">${m.label}</span><span class="meta-value">${escapeHtml(m.value)}</span></div>`).join('')}
+    </div>
+    ${it.note ? `<div class="note-block">${escapeHtml(it.note)}</div>` : ''}
+    <div class="btn-row">
+      <button class="btn btn-danger" id="detailDeleteBtn">Delete</button>
+      <button class="btn btn-secondary" id="detailEditBtn">Edit</button>
+    </div>`;
+  document.getElementById('detailEditBtn').addEventListener('click', () => {
+    closeModal('detailModal'); loadFormFromItem(it); openModal(formModal);
+  });
+  document.getElementById('detailDeleteBtn').addEventListener('click', async () => {
+    if (!confirm(`Delete "${it.title}"? This cannot be undone.`)) return;
+    state.items = state.items.filter(x => x.id !== it.id);
+    saveLocalCache();
+    closeModal('detailModal'); renderAll();
+    schedulePushLibrary();
+    showToast('Deleted', 'success');
+  });
+  openModal('detailModal');
+}
+document.getElementById('closeDetail').addEventListener('click', () => closeModal('detailModal'));
+
+// ----- Scanner -----
+document.getElementById('scanBtn').addEventListener('click', () => startScanner('inForm'));
+document.getElementById('quickScanBtn').addEventListener('click', () => {
+  if (!isConfigured()) { showToast('Finish setup first', 'error'); openWizard(); return; }
+  startScanner('quickAdd');
+});
+document.getElementById('closeScanner').addEventListener('click', stopScanner);
+
+async function startScanner(mode) {
+  if (!('BarcodeDetector' in window)) {
+    showToast('Camera scanning not supported. Type the barcode instead.', 'error');
+    return;
+  }
+  state.scannerMode = mode || 'inForm';
+  try {
+    const supported = await BarcodeDetector.getSupportedFormats();
+    const formats = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'].filter(f => supported.includes(f));
+    state.scannerDetector = new BarcodeDetector({ formats: formats.length ? formats : supported });
+  } catch { state.scannerDetector = new BarcodeDetector(); }
+  try {
+    state.scannerStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }, audio: false
+    });
+  } catch (err) { showToast('Camera permission denied', 'error'); return; }
+  const video = document.getElementById('scannerVideo');
+  video.srcObject = state.scannerStream;
+  await video.play();
+  openModal('scannerModal');
+  state.scannerActive = true;
+  state.scannerReady = false;
+  setTimeout(() => { state.scannerReady = true; }, 700);
+  document.getElementById('scannerInfo').textContent = 'Point camera at barcode';
+  state.scannerLoop = async function loop() {
+    if (!state.scannerActive) return;
+    if (!state.scannerReady) {
+      if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
+      return;
+    }
+    try {
+      const codes = await state.scannerDetector.detect(video);
+      if (codes && codes.length) {
+        const code = (codes[0].rawValue || '').trim();
+        if (code && code.length >= 8 && /^[0-9]+$/.test(code)) {
+          state.scannerActive = false;
+          await onBarcodeScanned(code, state.scannerMode);
+          return;
+        }
+      }
+    } catch {}
+    if (state.scannerActive) requestAnimationFrame(state.scannerLoop);
+  };
+  requestAnimationFrame(state.scannerLoop);
+}
+function stopScanner() {
+  state.scannerActive = false;
+  if (state.scannerStream) {
+    state.scannerStream.getTracks().forEach(t => t.stop());
+    state.scannerStream = null;
+  }
+  closeModal('scannerModal');
+}
+async function onBarcodeScanned(code, mode) {
+  document.getElementById('scannerInfo').innerHTML = `Scanned: <strong>${escapeHtml(code)}</strong> — looking up...`;
+  let result = null; let detectedType = null;
+  try {
+    const d = await tryDiscogs(code);
+    if (d) { result = d; detectedType = 'vinyl'; }
+  } catch (e) {}
+  if (!result) {
+    try {
+      const d = await lookupDvd(code);
+      if (d) { result = d; detectedType = 'dvd'; }
+    } catch (e) {}
+  }
+  if (state.scannerStream) {
+    state.scannerStream.getTracks().forEach(t => t.stop());
+    state.scannerStream = null;
+  }
+  closeModal('scannerModal', true);
+  if (mode === 'quickAdd') {
+    clearForm();
+    fld.barcode.value = code;
+    if (detectedType) setFormType(detectedType);
+    if (result) await applyLookupToForm(result);
+    openModal(formModal);
+    showToast(result ? 'Found and filled. Review and save.' : 'No match found. Fill in the rest manually.', result ? 'success' : 'error');
+  } else {
+    fld.barcode.value = code;
+    if (detectedType && detectedType !== state.formType) setFormType(detectedType);
+    if (result) { await applyLookupToForm(result); showToast('Found and filled. Review and save.', 'success'); }
+    else showToast(`Scanned: ${code}. No online match — fill in manually.`, 'error');
+  }
+}
+async function applyLookupToForm(result) {
+  if (result.title && !fld.title.value) fld.title.value = result.title;
+  if (result.artist && !fld.artist.value) fld.artist.value = result.artist;
+  if (result.genre && !fld.genre.value) fld.genre.value = result.genre;
+  if (result.coverUrl && !state.formImages.cover) {
+    const dataUrl = await urlToCompressedDataURL(result.coverUrl);
+    if (dataUrl) { state.formImages.cover = dataUrl; refreshImageSlot('cover'); }
+  }
+}
+async function tryDiscogs(code) {
+  if (!state.config.discogs_token) return null;
+  return await lookupDiscogs(code);
+}
+document.getElementById('lookupBtn').addEventListener('click', doManualLookup);
+async function doManualLookup() {
+  const code = fld.barcode.value.trim();
+  if (!code) { showToast('Enter or scan a barcode first', 'error'); return; }
+  const lblBtn = document.getElementById('lookupBtn');
+  const lblSpan = document.getElementById('lookupBtnLabel');
+  lblBtn.disabled = true;
+  lblSpan.innerHTML = '<span class="spinner"></span>';
+  try {
+    let result = null; let detectedType = null;
+    if (state.formType === 'vinyl') {
+      result = await tryDiscogs(code);
+      if (result) detectedType = 'vinyl';
+      else { result = await lookupDvd(code); if (result) detectedType = 'dvd'; }
+    } else {
+      result = await lookupDvd(code);
+      if (result) detectedType = 'dvd';
+      else { result = await tryDiscogs(code); if (result) detectedType = 'vinyl'; }
+    }
+    if (!result) { showToast('No match found. Fill in manually.', 'error'); return; }
+    if (detectedType && detectedType !== state.formType) setFormType(detectedType);
+    await applyLookupToForm(result);
+    showToast('Lookup complete. Review and save.', 'success');
+  } catch (err) {
+    showToast('Lookup failed: ' + (err.message || 'unknown'), 'error');
+  } finally {
+    lblBtn.disabled = false; lblSpan.textContent = 'Lookup';
+  }
+}
+async function lookupDiscogs(code) {
+  const token = state.config.discogs_token;
+  if (!token) return null;
+  const url = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
+  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
+  if (!resp.ok) throw new Error('Discogs ' + resp.status);
+  const data = await resp.json();
+  if (!data.results || !data.results.length) return null;
+  const r = data.results.find(x => x.type === 'release') || data.results[0];
+  let title = r.title || ''; let artist = '';
+  if (title.includes(' - ')) {
+    const parts = title.split(' - ');
+    artist = parts[0].trim();
+    title = parts.slice(1).join(' - ').trim();
+  }
+  const genre = (r.genre && r.genre[0]) || (r.style && r.style[0]) || '';
+  return { title, artist, genre, coverUrl: r.cover_image || r.thumb };
+}
+async function lookupDvd(code) {
+  const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(code)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('UPC ' + resp.status);
+  const data = await resp.json();
+  if (!data.items || !data.items.length) return null;
+  const item = data.items[0];
+  return { title: item.title || '', artist: '', genre: '',
+           coverUrl: (item.images && item.images[0]) || null };
+}
+
+// ----- Title autocomplete -----
+const titleAcEl = document.getElementById('titleAutocomplete');
+let titleAcTimer = null; let titleAcSeq = 0;
+fld.title.addEventListener('input', () => {
+  const q = fld.title.value.trim();
+  clearTimeout(titleAcTimer);
+  if (q.length < 3) { hideTitleAutocomplete(); return; }
+  titleAcTimer = setTimeout(() => runTitleSearch(q), 350);
+});
+fld.title.addEventListener('blur', () => setTimeout(hideTitleAutocomplete, 200));
+fld.title.addEventListener('focus', () => {
+  const q = fld.title.value.trim();
+  if (q.length >= 3) runTitleSearch(q);
+});
+function hideTitleAutocomplete() { titleAcEl.classList.remove('open'); titleAcEl.innerHTML = ''; }
+function showTitleStatus(msg) {
+  titleAcEl.innerHTML = `<div class="autocomplete-status">${escapeHtml(msg)}</div>`;
+  titleAcEl.classList.add('open');
+}
+async function runTitleSearch(q) {
+  const mySeq = ++titleAcSeq;
+  showTitleStatus('Searching...');
+  try {
+    const results = state.formType === 'vinyl' ? await searchDiscogsByTitle(q) : await searchTmdbByTitle(q);
+    if (mySeq !== titleAcSeq) return;
+    if (!results.length) { showTitleStatus('No matches found'); return; }
+    renderTitleResults(results);
+  } catch (err) {
+    if (mySeq !== titleAcSeq) return;
+    showTitleStatus('Search failed: ' + (err.message || 'unknown'));
+  }
+}
+function renderTitleResults(results) {
+  titleAcEl.innerHTML = '';
+  for (const r of results) {
+    const item = document.createElement('div');
+    item.className = 'autocomplete-item';
+    const thumb = r.thumbUrl ? `<img class="autocomplete-thumb" src="${r.thumbUrl}" alt="">`
+                             : `<div class="autocomplete-thumb">${state.formType === 'vinyl' ? '◉' : '▣'}</div>`;
+    item.innerHTML = `${thumb}<div class="autocomplete-text">
+      <div class="autocomplete-title">${escapeHtml(r.title)}</div>
+      <div class="autocomplete-sub">${escapeHtml(r.sub || '')}</div></div>`;
+    item.addEventListener('mousedown', e => e.preventDefault());
+    item.addEventListener('click', async () => {
+      hideTitleAutocomplete();
+      await applyTitleSearchPick(r);
+    });
+    titleAcEl.appendChild(item);
+  }
+  titleAcEl.classList.add('open');
+}
+async function applyTitleSearchPick(r) {
+  fld.title.value = r.title || fld.title.value;
+  if (r.artist && !fld.artist.value) fld.artist.value = r.artist;
+  if (r.genre && !fld.genre.value) fld.genre.value = r.genre;
+  if (r.coverUrl && !state.formImages.cover) {
+    showToast('Fetching cover...');
+    const dataUrl = await urlToCompressedDataURL(r.coverUrl);
+    if (dataUrl) { state.formImages.cover = dataUrl; refreshImageSlot('cover'); }
+  }
+  showToast('Filled from search', 'success');
+}
+async function searchTmdbByTitle(q) {
+  const token = state.config.tmdb_token;
+  if (!token) throw new Error('Add a TMDB API key in Settings → Advanced');
+  const url = `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(token)}&query=${encodeURIComponent(q)}&include_adult=false`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    if (resp.status === 401) throw new Error('Invalid TMDB API key');
+    throw new Error('TMDB ' + resp.status);
+  }
+  const data = await resp.json();
+  if (!data.results || !data.results.length) return [];
+  return data.results.slice(0, 6).map(m => {
+    const year = m.release_date ? m.release_date.slice(0, 4) : '';
+    return {
+      title: m.title,
+      sub: [year, m.original_language ? m.original_language.toUpperCase() : ''].filter(Boolean).join(' · '),
+      thumbUrl: m.poster_path ? `https://image.tmdb.org/t/p/w185${m.poster_path}` : null,
+      coverUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
+      genre: '', artist: '',
+    };
+  });
+}
+async function searchDiscogsByTitle(q) {
+  const token = state.config.discogs_token;
+  if (!token) throw new Error('Add a Discogs token in Settings → Advanced');
+  const url = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&format=Vinyl&token=${encodeURIComponent(token)}`;
+  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
+  if (!resp.ok) throw new Error('Discogs ' + resp.status);
+  const data = await resp.json();
+  if (!data.results || !data.results.length) return [];
+  return data.results.slice(0, 6).map(r => {
+    let title = r.title || ''; let artist = '';
+    if (title.includes(' - ')) {
+      const parts = title.split(' - ');
+      artist = parts[0].trim();
+      title = parts.slice(1).join(' - ').trim();
+    }
+    return {
+      title, artist,
+      sub: [artist, r.year || '', (r.format && r.format[0]) || ''].filter(Boolean).join(' · '),
+      thumbUrl: r.thumb || r.cover_image || null,
+      coverUrl: r.cover_image || r.thumb || null,
+      genre: (r.genre && r.genre[0]) || (r.style && r.style[0]) || '',
+    };
+  });
+}
+
+// ----- Settings -----
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('advDiscogs').value = state.config.discogs_token || '';
+  document.getElementById('advTmdb').value = state.config.tmdb_token || '';
+  const c = ghCfg();
+  document.getElementById('advOwner').value = c.owner;
+  document.getElementById('advRepo').value = c.repo;
+  document.getElementById('advBranch').value = c.branch;
+  document.getElementById('advToken').value = c.token;
+  refreshSettingsSyncUI();
+  openModal('settingsModal');
+});
+document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
+document.getElementById('settingsDoneBtn').addEventListener('click', () => closeModal('settingsModal'));
+document.getElementById('saveAdvTokensBtn').addEventListener('click', async () => {
+  state.config.discogs_token = document.getElementById('advDiscogs').value.trim();
+  state.config.tmdb_token = document.getElementById('advTmdb').value.trim();
+  saveLocalCache();
+  try { await pushConfig(); showToast('Saved to GitHub', 'success'); }
+  catch (err) { showToast('Save failed: ' + err.message, 'error'); }
+});
+document.getElementById('saveGhConnBtn').addEventListener('click', async () => {
+  setGhCfg({
+    owner: document.getElementById('advOwner').value.trim(),
+    repo: document.getElementById('advRepo').value.trim(),
+    branch: document.getElementById('advBranch').value.trim() || 'main',
+    token: document.getElementById('advToken').value.trim(),
+  });
+  showToast('Connection saved', 'success');
+  try { await pullFromCloud(); } catch {}
+});
+document.getElementById('pullNowBtn').addEventListener('click', async () => {
+  try { await pullFromCloud(); showToast('Pulled latest from GitHub', 'success'); }
+  catch (err) { showToast('Pull failed: ' + err.message, 'error'); }
+});
+document.getElementById('pushNowBtn').addEventListener('click', async () => {
+  try { await pushLibrary(); await pushConfig(); showToast('Pushed to GitHub', 'success'); }
+  catch (err) { showToast('Push failed: ' + err.message, 'error'); }
+});
+
+// ----- Wizard -----
+function openWizard() {
+  showWizardStep(1);
+  document.getElementById('wizardModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWizard() {
+  document.getElementById('wizardModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function showWizardStep(n) {
+  document.querySelectorAll('.wizard-step').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.step) === n);
+  });
+  document.querySelectorAll('.wizard-dot').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.step) <= n);
+  });
+}
+document.getElementById('wizNext1').addEventListener('click', () => showWizardStep(2));
+document.getElementById('wizBack2').addEventListener('click', () => showWizardStep(1));
+document.getElementById('wizBack3').addEventListener('click', () => showWizardStep(2));
+document.getElementById('wizNext2').addEventListener('click', async () => {
+  const owner = document.getElementById('wizOwner').value.trim();
+  const repo = document.getElementById('wizRepo').value.trim();
+  const branch = document.getElementById('wizBranch').value.trim() || 'main';
+  const token = document.getElementById('wizToken').value.trim();
+  if (!owner || !repo || !token) { showToast('All fields required', 'error'); return; }
+  setGhCfg({ owner, repo, branch, token });
+  try {
+    showToast('Testing connection...');
+    await pullFromCloud();
+    document.getElementById('wizDiscogs').value = state.config.discogs_token || '';
+    document.getElementById('wizTmdb').value = state.config.tmdb_token || '';
+    showWizardStep(3);
+  } catch (err) {
+    showToast('Connection test failed: ' + err.message, 'error');
+  }
+});
+document.getElementById('wizFinish').addEventListener('click', async () => {
+  state.config.discogs_token = document.getElementById('wizDiscogs').value.trim();
+  state.config.tmdb_token = document.getElementById('wizTmdb').value.trim();
+  saveLocalCache();
+  try {
+    await pushConfig();
+    if (!localStorage.getItem(LS_KEYS.librarySha)) await pushLibrary();
+    closeWizard();
+    showToast('Setup complete', 'success');
+  } catch (err) {
+    showToast('Final save failed: ' + err.message, 'error');
+  }
+});
+
+// ----- Boot -----
+(async function init() {
+  loadLocalCache();
+  renderAll();
+  if (!isConfigured()) {
+    setSyncStatus('init');
+    openWizard();
+    return;
+  }
+  try {
+    await pullFromCloud();
+  } catch (err) {
+    if (err.message.includes('401') || err.message.includes('403')) {
+      showToast('GitHub auth failed — check token in Settings → Advanced', 'error');
+    } else {
+      setSyncStatus('error', err.message);
+    }
+  }
+})();
+</script>
+</body>
+</html>
