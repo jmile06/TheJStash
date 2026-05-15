@@ -1135,7 +1135,7 @@ function openDetail(id) {
       <button class="btn btn-secondary" id="detailEditBtn">Edit</button>
     </div>`;
   document.getElementById('detailEditBtn').addEventListener('click', () => {
-    closeModal('detailModal'); loadFormFromItem(it); openModal(formModal);
+    closeModal('detailModal', true); loadFormFromItem(it); openModal(formModal);
   });
   document.getElementById('detailDeleteBtn').addEventListener('click', async () => {
     if (!confirm(`Delete "${it.title}"? This cannot be undone.`)) return;
