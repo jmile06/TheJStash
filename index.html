@@ -26,6 +26,7 @@
     -webkit-font-smoothing:antialiased; overscroll-behavior-y:none; }
   body { padding-bottom: env(safe-area-inset-bottom); padding-top: env(safe-area-inset-top);
     min-height:100vh; display:flex; flex-direction:column; }
+  /* ============== Header, nav, sync indicator ============== */
   .app-header { padding:12px 18px 10px; border-bottom:1px solid var(--border);
     background:var(--bg); position:sticky; top:0; z-index:50;
     display:flex; align-items:center; justify-content:space-between; gap:12px; }
@@ -66,6 +67,7 @@
     padding:0 12px; border-radius:var(--radius); font-size:13px;
     font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; }
   .sort-btn:active { background:var(--bg-elev-2); }
+  /* ============== Content listing (cards, empty state) ============== */
   main { flex:1; padding:16px; overflow-y:auto; }
   .empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
   .empty h3 { font-family:'Fraunces',serif; font-weight:600; margin:0 0 8px; color:var(--text); }
@@ -90,6 +92,7 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .card-sub { font-size:12px; color:var(--text-dim); margin:0;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* ============== FAB and modal shell ============== */
   .fab { position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom));
     width:56px; height:56px; border-radius:50%; background:var(--accent); color:var(--bg);
     border:none; box-shadow:0 6px 20px rgba(226,130,19,0.4); cursor:pointer;
@@ -108,6 +111,7 @@
     position:sticky; top:0; background:var(--bg); z-index:1; }
   .modal-title { font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin:0; }
   .modal-body { padding:14px 18px 18px; }
+  /* ============== Form fields (entry add/edit) ============== */
   .field { margin-bottom:10px; }
   .field-label { display:block; font-size:11px; font-weight:600;
     color:var(--text-dim); margin-bottom:4px;
@@ -174,6 +178,7 @@
   .btn-secondary { background:var(--bg-elev); color:var(--text); border-color:var(--border); }
   .btn-danger { background:var(--danger); color:white; }
   .btn:active { transform:scale(0.98); }
+  /* ============== Detail view ============== */
   .detail-cover { width:100%; max-width:360px; aspect-ratio:1; margin:0 auto 20px;
     background:var(--bg-elev); border-radius:var(--radius); overflow:hidden;
     display:flex; align-items:center; justify-content:center; }
@@ -195,6 +200,7 @@
   .note-block { background:var(--bg-elev); border:1px solid var(--border);
     border-radius:var(--radius); padding:14px; margin-bottom:16px;
     white-space:pre-wrap; font-size:14px; line-height:1.5; }
+  /* ============== Toast notifications ============== */
   .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%);
     background:var(--bg-elev-2); border:1px solid var(--border); color:var(--text);
     padding:10px 18px; border-radius:var(--radius); font-size:13px;
@@ -203,6 +209,7 @@
   .toast.error { border-color:var(--danger); }
   @keyframes toastIn { from{opacity:0;transform:translate(-50%,-10px);}
                        to{opacity:1;transform:translate(-50%,0);} }
+  /* ============== Sort menu and scanner camera view ============== */
   .sort-menu { background:var(--bg-elev); border-radius:var(--radius); padding:4px; width:100%; }
   .sort-option { width:100%; background:transparent; border:none; color:var(--text);
     padding:12px; text-align:left; cursor:pointer; border-radius:6px;
@@ -212,6 +219,7 @@
   .sort-option .check { color:var(--accent); }
   #scannerVideo { width:100%; max-height:60vh; border-radius:var(--radius); background:black; }
   .scanner-info { text-align:center; color:var(--text-dim); font-size:13px; margin:12px 0; }
+  /* ============== Settings panel ============== */
   .settings-list { list-style:none; padding:0; margin:0; }
   .settings-item { background:var(--bg-elev); border:1px solid var(--border);
     border-radius:var(--radius); padding:14px; margin-bottom:10px; }
@@ -240,6 +248,7 @@
     border-radius:50%; animation:spin 0.7s linear infinite;
     display:inline-block; vertical-align:middle; }
   @keyframes spin { to { transform:rotate(360deg); } }
+  /* ============== First-launch setup wizard ============== */
   .wizard-step { display:none; }
   .wizard-step.active { display:block; }
   .wizard-progress { display:flex; gap:4px; margin-bottom:16px; }
@@ -632,19 +641,41 @@ function compressImage(file, maxDim = 1100, quality = 0.85) {
 }
 async function urlToCompressedDataURL(url, maxDim = 1000, quality = 0.85) {
   try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('fetch failed');
+    const resp = await fetchWithTimeout(url, {}, 15000);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const blob = await resp.blob();
     const file = new File([blob], 'cover.jpg', { type: blob.type || 'image/jpeg' });
     return await compressImage(file, maxDim, quality);
-  } catch (e) { return null; }
+  } catch (e) {
+    // Surface the failure so the user understands why the cover slot stayed empty.
+    showToast('Could not download cover image (' + (e.message || 'network error') + ')', 'error');
+    return null;
+  }
+}
+
+// fetch() with a timeout. Without this, a hung server leaves the UI spinning forever.
+// 10 seconds is generous for any of the APIs we hit; we use 15s for image downloads
+// since cover images can be slightly larger.
+function fetchWithTimeout(url, opts = {}, ms = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...opts, signal: controller.signal })
+    .finally(() => clearTimeout(timer))
+    .catch(err => {
+      if (err.name === 'AbortError') throw new Error('Request timed out');
+      throw err;
+    });
 }
 
 // ----- GitHub API -----
+// GitHub's Contents API requires the *current* SHA of a file when updating it.
+// This protects against concurrent edits: if someone (or another device) wrote
+// to the file since we last read it, our write rejects with 409. On 409 we
+// pull the fresh version and let the user know to re-apply their changes.
 async function ghReadFile(path) {
   const c = ghCfg();
   const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}?ref=${encodeURIComponent(c.branch)}`;
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json' },
   });
   if (resp.status === 404) return { exists: false, content: null, sha: null };
@@ -662,7 +693,7 @@ async function ghWriteFile(path, content, sha, message) {
   const body = { message: message || `Update ${path}`, content: b64, branch: c.branch };
   if (sha) body.sha = sha;
   const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}`;
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: {
       Authorization: 'Bearer ' + c.token,
@@ -670,7 +701,7 @@ async function ghWriteFile(path, content, sha, message) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
-  });
+  }, 15000);
   if (!resp.ok) {
     const errTxt = await resp.text();
     throw new Error(`GitHub write ${resp.status}: ${errTxt.slice(0, 200)}`);
@@ -737,6 +768,19 @@ function saveLocalCache() {
 }
 
 // ----- Cloud sync -----
+// ============================================================
+//  CLOUD SYNC (GitHub as source of truth)
+// ============================================================
+// Architecture:
+//   - The library and config files in the user's GitHub repo are authoritative.
+//   - localStorage holds a cache for instant UI rendering and offline reads.
+//   - On every save/edit/delete, we update local state first (UI is instant),
+//     then push to GitHub on a 2-second debounce.
+//   - On launch, we render from cache immediately, then pull from GitHub in
+//     the background. If GitHub has newer data, we replace cache with that.
+//   - This is the architecture that survives Brave clearing localStorage:
+//     the user pastes their GitHub token once and everything else rehydrates.
+
 async function pullFromCloud() {
   if (!isConfigured()) return;
   setSyncStatus('syncing');
@@ -935,6 +979,14 @@ document.getElementById('sortBtn').addEventListener('click', () => {
 document.getElementById('closeSort').addEventListener('click', () => closeModal('sortModal'));
 
 // ----- Modal helpers -----
+// ============================================================
+//  MODAL MANAGEMENT (with Android back-button support)
+// ============================================================
+// We push a history entry every time a modal opens, so Android's back button
+// (or back gesture) pops the modal instead of leaving the app. Calling
+// closeModal does a history.back() to keep this in sync — UNLESS the close is
+// part of a modal-to-modal transition, in which case pass skipHistory=true
+// so the delayed popstate doesn't close the modal we just opened.
 const modalStack = [];
 function openModal(id) {
   document.getElementById(id).classList.add('open');
@@ -1068,7 +1120,7 @@ async function handleImageInput(e) {
     const dataUrl = await compressImage(file, 1100, 0.85);
     state.formImages[state.imageTarget] = dataUrl;
     refreshImageSlot(state.imageTarget);
-  } catch (err) { showToast('Image error', 'error'); }
+  } catch (err) { showToast('Image processing failed: ' + (err.message || 'unknown'), 'error'); }
 }
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -1158,6 +1210,10 @@ document.getElementById('quickScanBtn').addEventListener('click', () => {
 document.getElementById('closeScanner').addEventListener('click', stopScanner);
 
 async function startScanner(mode) {
+  // We delay barcode detection by 700ms after camera start because the
+  // BarcodeDetector API can hit on garbage data in the first few frames
+  // before the video stream is actually rendering — making it look like
+  // a "successful" scan happened before the user even saw the camera.
   if (!('BarcodeDetector' in window)) {
     showToast('Camera scanning not supported. Type the barcode instead.', 'error');
     return;
@@ -1213,15 +1269,22 @@ function stopScanner() {
 async function onBarcodeScanned(code, mode) {
   document.getElementById('scannerInfo').innerHTML = `Scanned: <strong>${escapeHtml(code)}</strong> — looking up...`;
   let result = null; let detectedType = null;
+  let lookupError = null;
   try {
     const d = await tryDiscogs(code);
     if (d) { result = d; detectedType = 'vinyl'; }
-  } catch (e) {}
+  } catch (e) {
+    // Note the error but keep trying the other API. We surface it only if
+    // *both* fail, so the user knows lookup didn't just silently miss.
+    lookupError = e;
+  }
   if (!result) {
     try {
       const d = await lookupDvd(code);
-      if (d) { result = d; detectedType = 'dvd'; }
-    } catch (e) {}
+      if (d) { result = d; detectedType = 'dvd'; lookupError = null; }
+    } catch (e) {
+      lookupError = e;
+    }
   }
   if (state.scannerStream) {
     state.scannerStream.getTracks().forEach(t => t.stop());
@@ -1234,12 +1297,24 @@ async function onBarcodeScanned(code, mode) {
     if (detectedType) setFormType(detectedType);
     if (result) await applyLookupToForm(result);
     openModal(formModal);
-    showToast(result ? 'Found and filled. Review and save.' : 'No match found. Fill in the rest manually.', result ? 'success' : 'error');
+    if (result) {
+      showToast('Found and filled. Review and save.', 'success');
+    } else if (lookupError) {
+      showToast(`Lookup error: ${lookupError.message}. Fill in manually.`, 'error');
+    } else {
+      showToast('No match found. Fill in the rest manually.', 'error');
+    }
   } else {
     fld.barcode.value = code;
     if (detectedType && detectedType !== state.formType) setFormType(detectedType);
-    if (result) { await applyLookupToForm(result); showToast('Found and filled. Review and save.', 'success'); }
-    else showToast(`Scanned: ${code}. No online match — fill in manually.`, 'error');
+    if (result) {
+      await applyLookupToForm(result);
+      showToast('Found and filled. Review and save.', 'success');
+    } else if (lookupError) {
+      showToast(`Lookup error: ${lookupError.message}. Fill in manually.`, 'error');
+    } else {
+      showToast(`Scanned: ${code}. No online match — fill in manually.`, 'error');
+    }
   }
 }
 async function applyLookupToForm(result) {
@@ -1288,7 +1363,7 @@ async function lookupDiscogs(code) {
   const token = state.config.discogs_token;
   if (!token) return null;
   const url = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
-  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
+  const resp = await fetchWithTimeout(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
   if (!resp.ok) throw new Error('Discogs ' + resp.status);
   const data = await resp.json();
   if (!data.results || !data.results.length) return null;
@@ -1304,7 +1379,7 @@ async function lookupDiscogs(code) {
 }
 async function lookupDvd(code) {
   const url = `https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(code)}`;
-  const resp = await fetch(url);
+  const resp = await fetchWithTimeout(url);
   if (!resp.ok) throw new Error('UPC ' + resp.status);
   const data = await resp.json();
   if (!data.items || !data.items.length) return null;
@@ -1379,7 +1454,7 @@ async function searchTmdbByTitle(q) {
   const token = state.config.tmdb_token;
   if (!token) throw new Error('Add a TMDB API key in Settings → Advanced');
   const url = `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(token)}&query=${encodeURIComponent(q)}&include_adult=false`;
-  const resp = await fetch(url);
+  const resp = await fetchWithTimeout(url);
   if (!resp.ok) {
     if (resp.status === 401) throw new Error('Invalid TMDB API key');
     throw new Error('TMDB ' + resp.status);
@@ -1401,7 +1476,7 @@ async function searchDiscogsByTitle(q) {
   const token = state.config.discogs_token;
   if (!token) throw new Error('Add a Discogs token in Settings → Advanced');
   const url = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&format=Vinyl&token=${encodeURIComponent(token)}`;
-  const resp = await fetch(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
+  const resp = await fetchWithTimeout(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
   if (!resp.ok) throw new Error('Discogs ' + resp.status);
   const data = await resp.json();
   if (!data.results || !data.results.length) return [];
