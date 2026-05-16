@@ -248,12 +248,7 @@
     border-radius:50%; animation:spin 0.7s linear infinite;
     display:inline-block; vertical-align:middle; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  /* ============== First-launch setup wizard ============== */
-  .wizard-step { display:none; }
-  .wizard-step.active { display:block; }
-  .wizard-progress { display:flex; gap:4px; margin-bottom:16px; }
-  .wizard-dot { flex:1; height:3px; background:var(--bg-elev-2); border-radius:2px; }
-  .wizard-dot.active { background:var(--accent); }
+  /* ============== First-launch restore prompt ============== */
   .wizard-hint { font-size:12px; color:var(--text-faint); margin:6px 0 12px; line-height:1.5; }
   .wizard-hint code { background:var(--bg-elev-2); padding:1px 5px; border-radius:3px;
     font-family:'JetBrains Mono',monospace; font-size:11px; }
@@ -307,67 +302,17 @@
   </svg>
 </button>
 
-<div class="modal-backdrop" id="wizardModal">
+<div class="modal-backdrop" id="restoreModal">
   <div class="modal">
-    <div class="modal-header"><h2 class="modal-title">Set Up The J Stash</h2></div>
+    <div class="modal-header"><h2 class="modal-title">Restore from GitHub?</h2></div>
     <div class="modal-body">
-      <div class="wizard-progress">
-        <div class="wizard-dot active" data-step="1"></div>
-        <div class="wizard-dot" data-step="2"></div>
-        <div class="wizard-dot" data-step="3"></div>
-      </div>
-      <div class="wizard-step active" data-step="1">
-        <p>Your data lives in a private GitHub repo. This way it survives anything Brave does to local storage.</p>
-        <p style="margin-top:12px;">You'll need:</p>
-        <ul style="font-size:13px; color:var(--text-dim); padding-left:18px; line-height:1.8;">
-          <li>A private GitHub repo for your data (separate from the app)</li>
-          <li>A fine-grained Personal Access Token with Contents read/write access to that repo</li>
-        </ul>
-        <p class="wizard-hint">No data yet? Just create an empty private repo — the app will populate it.</p>
-        <div class="btn-row"><button class="btn btn-primary" id="wizNext1">Continue</button></div>
-      </div>
-      <div class="wizard-step" data-step="2">
-        <p>Paste your GitHub access info:</p>
-        <div class="field" style="margin-top:10px;">
-          <label class="field-label">GitHub Username (Owner) <span class="req">*</span></label>
-          <input type="text" class="field-input" id="wizOwner" placeholder="e.g. jmile06">
-        </div>
-        <div class="field">
-          <label class="field-label">Repository Name <span class="req">*</span></label>
-          <input type="text" class="field-input" id="wizRepo" placeholder="e.g. TheJStashData">
-        </div>
-        <div class="field">
-          <label class="field-label">Branch</label>
-          <input type="text" class="field-input" id="wizBranch" placeholder="main" value="main">
-        </div>
-        <div class="field">
-          <label class="field-label">Fine-grained Personal Access Token <span class="req">*</span></label>
-          <input type="password" class="field-input" id="wizToken" placeholder="github_pat_...">
-        </div>
-        <p class="wizard-hint">Token must have <code>Contents: Read &amp; Write</code> for this repo. Get one at github.com/settings/tokens?type=beta</p>
-        <div class="btn-row">
-          <button class="btn btn-secondary" id="wizBack2">Back</button>
-          <button class="btn btn-primary" id="wizNext2">Test &amp; Continue</button>
-        </div>
-      </div>
-      <div class="wizard-step" data-step="3">
-        <p>Connection looks good. Optionally add API tokens for richer lookups (you can skip and add later from Settings → Advanced):</p>
-        <div class="field" style="margin-top:10px;">
-          <label class="field-label">Discogs Token (for vinyl)</label>
-          <input type="text" class="field-input" id="wizDiscogs" placeholder="Get from discogs.com/settings/developers">
-        </div>
-        <div class="field">
-          <label class="field-label">TMDB API Key (for DVD title search)</label>
-          <input type="text" class="field-input" id="wizTmdb" placeholder="Get from themoviedb.org/settings/api">
-        </div>
-        <p class="wizard-hint">Tokens save to your config file in GitHub. They persist across Brave wipes.</p>
-        <div class="btn-row">
-          <button class="btn btn-secondary" id="wizBack3">Back</button>
-          <button class="btn btn-primary" id="wizFinish">Finish Setup</button>
-        </div>
+      <p>Your library is empty, but you have a GitHub backup configured. Would you like to restore your library from GitHub?</p>
+      <p class="wizard-hint">This will pull your library and API tokens from your private GitHub repo.</p>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="restoreNoBtn" type="button">Start Empty</button>
+        <button class="btn btn-primary" id="restoreYesBtn" type="button">Restore</button>
       </div>
     </div>
-  </div>
 </div>
 
 <div class="modal-backdrop" id="formModal">
@@ -475,18 +420,18 @@
     <div class="modal-body">
       <ul class="settings-list">
         <li class="settings-item">
-          <h4>Cloud Sync</h4>
+          <h4>GitHub Backup</h4>
           <p id="syncStatus">Status: <span class="status-pill disconnected">Checking…</span></p>
           <p id="syncDetails" style="margin-top:6px; font-size:12px; color:var(--text-faint);"></p>
           <div class="settings-buttons" style="margin-top:8px;">
-            <button class="btn btn-secondary" id="pullNowBtn">Pull from GitHub</button>
-            <button class="btn btn-secondary" id="pushNowBtn">Push to GitHub</button>
+            <button class="btn btn-primary" id="pushNowBtn">Backup Now</button>
+            <button class="btn btn-secondary" id="pullNowBtn">Restore from GitHub</button>
           </div>
         </li>
         <details class="advanced">
           <summary>Advanced — API Tokens &amp; Connection</summary>
           <div>
-            <p style="font-size:12px; color:var(--text-faint); margin:0 0 12px;">These save to your private GitHub config file, not local storage. They persist across browser wipes.</p>
+            <p style="font-size:12px; color:var(--text-faint); margin:0 0 12px;">API tokens are stored locally on your device.</p>
             <div class="field">
               <label class="field-label">Discogs Token</label>
               <input type="text" class="field-input" id="advDiscogs" placeholder="(empty)">
@@ -496,10 +441,10 @@
               <input type="text" class="field-input" id="advTmdb" placeholder="(empty)">
             </div>
             <div class="btn-row" style="margin-top:0;">
-              <button class="btn btn-primary" id="saveAdvTokensBtn">Save to GitHub</button>
+              <button class="btn btn-primary" id="saveAdvTokensBtn">Save Tokens</button>
             </div>
             <hr style="border:none; border-top:1px solid var(--border); margin:14px 0;">
-            <p style="font-size:12px; color:var(--text-faint); margin:0 0 8px;">GitHub connection details (stored locally; required after browser wipe):</p>
+            <p style="font-size:12px; color:var(--text-faint); margin:0 0 8px;">GitHub connection (used only when you tap Backup Now or Restore):</p>
             <div class="field">
               <label class="field-label">Owner</label>
               <input type="text" class="field-input" id="advOwner">
@@ -523,7 +468,7 @@
         </details>
         <li class="settings-item">
           <h4>About</h4>
-          <p>The J Stash. Your library and config live in a private GitHub repo as the source of truth. The local app reads on launch and writes back on every change.</p>
+          <p>The J Stash. Your library lives on this device. Tap Backup Now to save a snapshot to your private GitHub repo whenever you've added entries you want to protect.</p>
         </li>
       </ul>
       <div class="btn-row"><button class="btn btn-primary" id="settingsDoneBtn" type="button">Done</button></div>
@@ -550,17 +495,28 @@
 <input type="file" id="galleryInput" accept="image/*" class="hidden-input">
 
 <script>
-/* The J Stash — Cloud-First (GitHub source of truth, localStorage cache) */
+/* The J Stash — Local-First with GitHub Backup
+   Architecture: IndexedDB is the source of truth for the library.
+   GitHub serves as a manual backup target (and one-time restore source).
+   localStorage holds only the GitHub credentials and the last-backup timestamp.
+*/
 
 const LIBRARY_PATH = 'data/library.json';
 const CONFIG_PATH = 'data/config.json';
+const DB_NAME = 'jstash';
+const DB_VERSION = 1;
 const LS_KEYS = {
   ghToken: 'jstash_gh_token',
   ghOwner: 'jstash_gh_owner',
   ghRepo: 'jstash_gh_repo',
   ghBranch: 'jstash_gh_branch',
-  libraryCache: 'jstash_library_cache',
-  configCache: 'jstash_config_cache',
+  // Tokens are cached here so they're available offline. The cloud config
+  // is treated as a one-way backup target, not a sync source.
+  discogsToken: 'jstash_discogs_token',
+  tmdbToken: 'jstash_tmdb_token',
+  // Backup tracking
+  lastBackupAt: 'jstash_last_backup_at',
+  lastChangeAt: 'jstash_last_change_at',
   librarySha: 'jstash_library_sha',
   configSha: 'jstash_config_sha',
 };
@@ -578,22 +534,143 @@ function setGhCfg(o) {
   if (o.repo != null) localStorage.setItem(LS_KEYS.ghRepo, o.repo);
   if (o.branch != null) localStorage.setItem(LS_KEYS.ghBranch, o.branch);
 }
-function isConfigured() {
+function isGhConfigured() {
   const c = ghCfg();
   return !!(c.token && c.owner && c.repo);
 }
 
+// ============================================================
+//  INDEXEDDB STORAGE LAYER
+// ============================================================
+// We keep items as individual records keyed by id, rather than one big array,
+// so that a single edit only writes one record instead of rewriting everything.
+// This matters at scale (200+ items with base64 images each).
+
+let db = null;
+
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('items')) {
+        d.createObjectStore('items', { keyPath: 'id' });
+      }
+      if (!d.objectStoreNames.contains('meta')) {
+        d.createObjectStore('meta', { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = () => { db = req.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbOp(storeName, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, mode);
+    const store = tx.objectStore(storeName);
+    const result = fn(store);
+    tx.oncomplete = () => resolve(result);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+async function dbGetAllItems() {
+  await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('items', 'readonly');
+    const store = tx.objectStore('items');
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbPutItem(item) {
+  await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('items', 'readwrite');
+    tx.objectStore('items').put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbDeleteItem(id) {
+  await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('items', 'readwrite');
+    tx.objectStore('items').delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbClearAllItems() {
+  await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('items', 'readwrite');
+    tx.objectStore('items').clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbBulkPutItems(items) {
+  await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('items', 'readwrite');
+    const store = tx.objectStore('items');
+    for (const item of items) store.put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Local change tracking — used to determine if backup is stale.
+function markLocalChange() {
+  localStorage.setItem(LS_KEYS.lastChangeAt, Date.now().toString());
+  updateBackupStatusUI();
+}
+function markBackupComplete() {
+  const now = Date.now();
+  localStorage.setItem(LS_KEYS.lastBackupAt, now.toString());
+  // Reset lastChangeAt so it only fires again on the next edit.
+  localStorage.removeItem(LS_KEYS.lastChangeAt);
+  updateBackupStatusUI();
+}
+function getBackupStatus() {
+  const lastBackup = parseInt(localStorage.getItem(LS_KEYS.lastBackupAt) || '0');
+  const lastChange = parseInt(localStorage.getItem(LS_KEYS.lastChangeAt) || '0');
+  // Backup is stale if there have been changes since last backup,
+  // OR if it's been more than 7 days regardless of changes.
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const tooOld = lastBackup === 0 || (Date.now() - lastBackup > SEVEN_DAYS_MS);
+  const hasChanges = lastChange > lastBackup;
+  return {
+    lastBackupAt: lastBackup,
+    isStale: tooOld || hasChanges,
+    hasNeverBackedUp: lastBackup === 0,
+  };
+}
+
 const state = {
   items: [],
-  config: { discogs_token: '', tmdb_token: '' },
   tab: 'all', search: '', sortKey: 'addedAt', sortDir: 'desc',
   editingId: null, formType: 'dvd',
   formImages: { cover: null, secondary: null },
   imageTarget: null,
   scannerActive: false, scannerStream: null, scannerDetector: null,
   scannerLoop: null, scannerReady: false, scannerMode: 'inForm',
-  syncStatus: 'init', syncErrorMessage: '',
 };
+
+// Token getters — these live in localStorage and persist across browser wipes
+// (which can't happen anyway when wrapped as a TWA, but defensive).
+function getDiscogsToken() { return localStorage.getItem(LS_KEYS.discogsToken) || ''; }
+function getTmdbToken() { return localStorage.getItem(LS_KEYS.tmdbToken) || ''; }
+function setDiscogsToken(v) { localStorage.setItem(LS_KEYS.discogsToken, v || ''); }
+function setTmdbToken(v) { localStorage.setItem(LS_KEYS.tmdbToken, v || ''); }
 
 function uid() {
   return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -701,9 +778,16 @@ async function ghReadFile(path) {
     content = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
   } else {
     // Large file — fetch raw content from the same URL with a raw Accept header.
-    // This uses the same Bearer token, so it works for private repos.
-    const rawResp = await fetchWithTimeout(apiUrl, {
-      headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github.raw+json' },
+    // We add a cache-buster query param because browser HTTP caches can return
+    // a previously-cached metadata response even though the Accept header differs.
+    // Without this, the response is the JSON metadata wrapper, not the raw file.
+    const rawUrl = apiUrl + `&_t=${Date.now()}`;
+    const rawResp = await fetchWithTimeout(rawUrl, {
+      headers: {
+        Authorization: 'Bearer ' + c.token,
+        Accept: 'application/vnd.github.raw+json',
+      },
+      cache: 'no-store',
     }, 30000);
     if (!rawResp.ok) {
       const errTxt = await rawResp.text();
@@ -736,175 +820,132 @@ async function ghWriteFile(path, content, sha, message) {
   return data.content && data.content.sha;
 }
 
-// ----- Sync UI -----
-function setSyncStatus(status, message) {
-  state.syncStatus = status;
-  state.syncErrorMessage = message || '';
+// ============================================================
+//  BACKUP STATUS UI (header badge)
+// ============================================================
+function updateBackupStatusUI() {
   const ind = document.getElementById('syncIndicator');
   const text = document.getElementById('syncText');
   if (!ind || !text) return;
   ind.classList.remove('syncing', 'ok', 'error');
-  switch (status) {
-    case 'syncing': ind.classList.add('syncing'); text.textContent = 'Sync'; break;
-    case 'ok': ind.classList.add('ok'); text.textContent = 'Synced'; break;
-    case 'error': ind.classList.add('error'); text.textContent = 'Sync error'; break;
-    case 'offline': ind.classList.add('error'); text.textContent = 'Offline'; break;
-    default: text.textContent = '…';
+  if (!isGhConfigured()) {
+    // Not set up. Faded.
+    text.textContent = 'No backup';
+    return;
   }
-  refreshSettingsSyncUI();
-}
-function refreshSettingsSyncUI() {
-  const statusEl = document.getElementById('syncStatus');
-  const detailsEl = document.getElementById('syncDetails');
-  if (!statusEl) return;
-  const c = ghCfg();
-  const pillClass = state.syncStatus === 'ok' ? 'connected' : 'disconnected';
-  const pillText = state.syncStatus === 'ok' ? 'Connected' :
-                   state.syncStatus === 'syncing' ? 'Syncing…' :
-                   state.syncStatus === 'error' ? 'Error' :
-                   state.syncStatus === 'offline' ? 'Offline' : 'Not connected';
-  statusEl.innerHTML = `Status: <span class="status-pill ${pillClass}">${pillText}</span>`;
-  if (c.owner && c.repo) {
-    detailsEl.textContent = `Repo: ${c.owner}/${c.repo} (branch: ${c.branch})${state.syncErrorMessage ? ' — ' + state.syncErrorMessage : ''}`;
+  const status = getBackupStatus();
+  if (status.isStale) {
+    ind.classList.add('error');
+    text.textContent = status.hasNeverBackedUp ? 'Backup needed' : 'Backup stale';
   } else {
-    detailsEl.textContent = 'Not configured. Use the setup wizard or fill in details under Advanced.';
+    ind.classList.add('ok');
+    text.textContent = 'Backed up';
   }
 }
 
-// ----- Local cache -----
-function loadLocalCache() {
+// ============================================================
+//  BACKUP TO GITHUB (manual push)
+// ============================================================
+async function backupToGitHub() {
+  if (!isGhConfigured()) {
+    showToast('Set up GitHub backup in Settings first', 'error');
+    return false;
+  }
+  const ind = document.getElementById('syncIndicator');
+  if (ind) { ind.classList.remove('error', 'ok'); ind.classList.add('syncing'); }
+  document.getElementById('syncText').textContent = 'Backing up…';
+
   try {
-    const lib = localStorage.getItem(LS_KEYS.libraryCache);
-    if (lib) {
-      const parsed = JSON.parse(lib);
-      if (parsed && Array.isArray(parsed.items)) state.items = parsed.items;
+    // Push library
+    const payload = {
+      app: 'the_j_stash', version: 3,
+      exportedAt: new Date().toISOString(),
+      items: state.items,
+    };
+    const librarySha = localStorage.getItem(LS_KEYS.librarySha) || null;
+    const newLibSha = await ghWriteFile(LIBRARY_PATH,
+      JSON.stringify(payload, null, 2), librarySha,
+      `Library backup: ${state.items.length} items`);
+    if (newLibSha) localStorage.setItem(LS_KEYS.librarySha, newLibSha);
+
+    // Push config (Discogs/TMDB tokens) so they survive a fresh install
+    const cfgPayload = {
+      discogs_token: getDiscogsToken(),
+      tmdb_token: getTmdbToken(),
+    };
+    const configSha = localStorage.getItem(LS_KEYS.configSha) || null;
+    const newCfgSha = await ghWriteFile(CONFIG_PATH,
+      JSON.stringify(cfgPayload, null, 2), configSha, 'Config backup');
+    if (newCfgSha) localStorage.setItem(LS_KEYS.configSha, newCfgSha);
+
+    markBackupComplete();
+    showToast('Backed up to GitHub', 'success');
+    return true;
+  } catch (err) {
+    console.error('Backup failed:', err);
+    if (err.message.includes('409')) {
+      showToast('Backup conflict — pull or force-restore in Settings', 'error');
+    } else {
+      showToast('Backup failed: ' + err.message, 'error');
     }
-    const cfg = localStorage.getItem(LS_KEYS.configCache);
-    if (cfg) {
-      const parsed = JSON.parse(cfg);
-      if (parsed) state.config = { ...state.config, ...parsed };
-    }
-  } catch (e) { console.warn('Cache load failed:', e); }
-}
-function saveLocalCache() {
-  try {
-    localStorage.setItem(LS_KEYS.libraryCache, JSON.stringify({ items: state.items }));
-    localStorage.setItem(LS_KEYS.configCache, JSON.stringify(state.config));
-  } catch (e) { console.warn('Cache save failed:', e); }
+    updateBackupStatusUI();
+    return false;
+  }
 }
 
-// ----- Cloud sync -----
 // ============================================================
-//  CLOUD SYNC (GitHub as source of truth)
+//  RESTORE FROM GITHUB (one-time pull)
 // ============================================================
-// Architecture:
-//   - The library and config files in the user's GitHub repo are authoritative.
-//   - localStorage holds a cache for instant UI rendering and offline reads.
-//   - On every save/edit/delete, we update local state first (UI is instant),
-//     then push to GitHub on a 2-second debounce.
-//   - On launch, we render from cache immediately, then pull from GitHub in
-//     the background. If GitHub has newer data, we replace cache with that.
-//   - This is the architecture that survives Brave clearing localStorage:
-//     the user pastes their GitHub token once and everything else rehydrates.
+// Used for two cases:
+//   1. First-time install with an existing GitHub library to seed local
+//   2. User explicitly wants to discard local state and re-fetch from cloud
+async function restoreFromGitHub({ silent = false } = {}) {
+  if (!isGhConfigured()) {
+    if (!silent) showToast('Set up GitHub backup in Settings first', 'error');
+    return false;
+  }
+  const ind = document.getElementById('syncIndicator');
+  if (ind) { ind.classList.remove('error', 'ok'); ind.classList.add('syncing'); }
+  document.getElementById('syncText').textContent = 'Restoring…';
 
-async function pullFromCloud() {
-  if (!isConfigured()) return;
-  setSyncStatus('syncing');
   try {
+    // Pull library
     const libResult = await ghReadFile(LIBRARY_PATH);
     if (libResult.exists) {
-      if (!libResult.content || libResult.content.trim() === '') {
-        // Treat truly empty file as a fresh slate rather than throwing on JSON.parse.
-        state.items = [];
-        localStorage.setItem(LS_KEYS.librarySha, libResult.sha);
-      } else {
+      if (libResult.content && libResult.content.trim() !== '') {
         let parsed;
         try { parsed = JSON.parse(libResult.content); }
         catch (e) { throw new Error('Library file in GitHub is not valid JSON: ' + e.message); }
         if (parsed && Array.isArray(parsed.items)) {
+          await dbClearAllItems();
+          await dbBulkPutItems(parsed.items);
           state.items = parsed.items;
           localStorage.setItem(LS_KEYS.librarySha, libResult.sha);
         }
       }
-    } else {
-      state.items = [];
-      localStorage.removeItem(LS_KEYS.librarySha);
     }
+    // Pull config (tokens)
     const cfgResult = await ghReadFile(CONFIG_PATH);
-    if (cfgResult.exists) {
-      if (!cfgResult.content || cfgResult.content.trim() === '') {
-        // Empty config — leave defaults in place.
+    if (cfgResult.exists && cfgResult.content && cfgResult.content.trim() !== '') {
+      let parsed;
+      try { parsed = JSON.parse(cfgResult.content); }
+      catch (e) { /* config parse failure is non-fatal */ }
+      if (parsed) {
+        if (parsed.discogs_token) setDiscogsToken(parsed.discogs_token);
+        if (parsed.tmdb_token) setTmdbToken(parsed.tmdb_token);
         localStorage.setItem(LS_KEYS.configSha, cfgResult.sha);
-      } else {
-        let parsed;
-        try { parsed = JSON.parse(cfgResult.content); }
-        catch (e) { throw new Error('Config file in GitHub is not valid JSON: ' + e.message); }
-        if (parsed) {
-          state.config = { ...state.config, ...parsed };
-          localStorage.setItem(LS_KEYS.configSha, cfgResult.sha);
-        }
       }
-    } else {
-      localStorage.removeItem(LS_KEYS.configSha);
     }
-    saveLocalCache();
-    setSyncStatus('ok');
-    renderAll();
-  } catch (err) {
-    console.error('Pull failed:', err);
-    setSyncStatus('error', err.message);
-    throw err;
-  }
-}
 
-let libraryPushTimer = null;
-function schedulePushLibrary() {
-  clearTimeout(libraryPushTimer);
-  libraryPushTimer = setTimeout(() => {
-    pushLibrary().catch(err => {
-      console.warn('Library push failed:', err);
-      setSyncStatus('error', err.message);
-    });
-  }, 2000);
-}
-async function pushLibrary() {
-  if (!isConfigured()) return;
-  setSyncStatus('syncing');
-  const payload = {
-    app: 'the_j_stash', version: 2,
-    exportedAt: new Date().toISOString(),
-    items: state.items,
-  };
-  try {
-    const sha = localStorage.getItem(LS_KEYS.librarySha);
-    const newSha = await ghWriteFile(LIBRARY_PATH,
-      JSON.stringify(payload, null, 2), sha,
-      `Library update: ${state.items.length} items`);
-    if (newSha) localStorage.setItem(LS_KEYS.librarySha, newSha);
-    saveLocalCache();
-    setSyncStatus('ok');
+    markBackupComplete(); // local now matches cloud
+    renderAll();
+    if (!silent) showToast(`Restored ${state.items.length} items from GitHub`, 'success');
+    return true;
   } catch (err) {
-    if (err.message.includes('409')) {
-      try { await pullFromCloud(); showToast('Pulled newer version from GitHub. Re-apply your changes.', 'error'); } catch {}
-    } else {
-      setSyncStatus('error', err.message);
-      showToast('Sync failed: ' + err.message, 'error');
-    }
-  }
-}
-async function pushConfig() {
-  if (!isConfigured()) return;
-  setSyncStatus('syncing');
-  try {
-    const sha = localStorage.getItem(LS_KEYS.configSha);
-    const newSha = await ghWriteFile(CONFIG_PATH,
-      JSON.stringify(state.config, null, 2), sha, 'Update config');
-    if (newSha) localStorage.setItem(LS_KEYS.configSha, newSha);
-    saveLocalCache();
-    setSyncStatus('ok');
-  } catch (err) {
-    setSyncStatus('error', err.message);
-    throw err;
+    console.error('Restore failed:', err);
+    if (!silent) showToast('Restore failed: ' + err.message, 'error');
+    updateBackupStatusUI();
+    return false;
   }
 }
 
@@ -1056,7 +1097,7 @@ window.addEventListener('popstate', () => {
 });
 document.querySelectorAll('.modal-backdrop').forEach(bd => {
   bd.addEventListener('click', e => {
-    if (e.target === bd && bd.id !== 'wizardModal') closeModal(bd.id);
+    if (e.target === bd && bd.id !== 'restoreModal') closeModal(bd.id);
   });
 });
 
@@ -1186,19 +1227,23 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     secondary: state.formImages.secondary || null,
     addedAt, updatedAt: now,
   };
+  try {
+    await dbPutItem(item);
+  } catch (err) {
+    showToast('Local save failed: ' + err.message, 'error');
+    return;
+  }
   const idx = state.items.findIndex(i => i.id === id);
   if (idx >= 0) state.items[idx] = item; else state.items.push(item);
-  saveLocalCache();
+  markLocalChange();
   closeModal(formModal);
   renderAll();
-  schedulePushLibrary();
   showToast(state.editingId ? 'Entry updated' : 'Entry saved', 'success');
   state.editingId = null;
 });
 document.getElementById('cancelBtn').addEventListener('click', () => closeModal(formModal));
 document.getElementById('closeForm').addEventListener('click', () => closeModal(formModal));
 document.getElementById('addBtn').addEventListener('click', () => {
-  if (!isConfigured()) { showToast('Finish setup first', 'error'); openWizard(); return; }
   clearForm(); openModal(formModal);
 });
 
@@ -1232,10 +1277,14 @@ function openDetail(id) {
   });
   document.getElementById('detailDeleteBtn').addEventListener('click', async () => {
     if (!confirm(`Delete "${it.title}"? This cannot be undone.`)) return;
+    try {
+      await dbDeleteItem(it.id);
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, 'error'); return;
+    }
     state.items = state.items.filter(x => x.id !== it.id);
-    saveLocalCache();
+    markLocalChange();
     closeModal('detailModal'); renderAll();
-    schedulePushLibrary();
     showToast('Deleted', 'success');
   });
   openModal('detailModal');
@@ -1245,7 +1294,6 @@ document.getElementById('closeDetail').addEventListener('click', () => closeModa
 // ----- Scanner -----
 document.getElementById('scanBtn').addEventListener('click', () => startScanner('inForm'));
 document.getElementById('quickScanBtn').addEventListener('click', () => {
-  if (!isConfigured()) { showToast('Finish setup first', 'error'); openWizard(); return; }
   startScanner('quickAdd');
 });
 document.getElementById('closeScanner').addEventListener('click', stopScanner);
@@ -1368,7 +1416,7 @@ async function applyLookupToForm(result) {
   }
 }
 async function tryDiscogs(code) {
-  if (!state.config.discogs_token) return null;
+  if (!getDiscogsToken()) return null;
   return await lookupDiscogs(code);
 }
 document.getElementById('lookupBtn').addEventListener('click', doManualLookup);
@@ -1401,7 +1449,7 @@ async function doManualLookup() {
   }
 }
 async function lookupDiscogs(code) {
-  const token = state.config.discogs_token;
+  const token = getDiscogsToken();
   if (!token) return null;
   const url = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
   const resp = await fetchWithTimeout(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
@@ -1492,7 +1540,7 @@ async function applyTitleSearchPick(r) {
   showToast('Filled from search', 'success');
 }
 async function searchTmdbByTitle(q) {
-  const token = state.config.tmdb_token;
+  const token = getTmdbToken();
   if (!token) throw new Error('Add a TMDB API key in Settings → Advanced');
   const url = `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(token)}&query=${encodeURIComponent(q)}&include_adult=false`;
   const resp = await fetchWithTimeout(url);
@@ -1514,7 +1562,7 @@ async function searchTmdbByTitle(q) {
   });
 }
 async function searchDiscogsByTitle(q) {
-  const token = state.config.discogs_token;
+  const token = getDiscogsToken();
   if (!token) throw new Error('Add a Discogs token in Settings → Advanced');
   const url = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&format=Vinyl&token=${encodeURIComponent(token)}`;
   const resp = await fetchWithTimeout(url, { headers: { 'User-Agent': 'TheJStashPWA/2.0' } });
@@ -1540,113 +1588,109 @@ async function searchDiscogsByTitle(q) {
 
 // ----- Settings -----
 document.getElementById('settingsBtn').addEventListener('click', () => {
-  document.getElementById('advDiscogs').value = state.config.discogs_token || '';
-  document.getElementById('advTmdb').value = state.config.tmdb_token || '';
+  document.getElementById('advDiscogs').value = getDiscogsToken();
+  document.getElementById('advTmdb').value = getTmdbToken();
   const c = ghCfg();
   document.getElementById('advOwner').value = c.owner;
   document.getElementById('advRepo').value = c.repo;
   document.getElementById('advBranch').value = c.branch;
   document.getElementById('advToken').value = c.token;
-  refreshSettingsSyncUI();
+  refreshSettingsBackupUI();
   openModal('settingsModal');
 });
 document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
 document.getElementById('settingsDoneBtn').addEventListener('click', () => closeModal('settingsModal'));
-document.getElementById('saveAdvTokensBtn').addEventListener('click', async () => {
-  state.config.discogs_token = document.getElementById('advDiscogs').value.trim();
-  state.config.tmdb_token = document.getElementById('advTmdb').value.trim();
-  saveLocalCache();
-  try { await pushConfig(); showToast('Saved to GitHub', 'success'); }
-  catch (err) { showToast('Save failed: ' + err.message, 'error'); }
+document.getElementById('saveAdvTokensBtn').addEventListener('click', () => {
+  setDiscogsToken(document.getElementById('advDiscogs').value.trim());
+  setTmdbToken(document.getElementById('advTmdb').value.trim());
+  showToast('API tokens saved locally', 'success');
 });
-document.getElementById('saveGhConnBtn').addEventListener('click', async () => {
+document.getElementById('saveGhConnBtn').addEventListener('click', () => {
   setGhCfg({
     owner: document.getElementById('advOwner').value.trim(),
     repo: document.getElementById('advRepo').value.trim(),
     branch: document.getElementById('advBranch').value.trim() || 'main',
     token: document.getElementById('advToken').value.trim(),
   });
-  showToast('Connection saved', 'success');
-  try { await pullFromCloud(); } catch {}
+  showToast('GitHub connection saved', 'success');
+  refreshSettingsBackupUI();
+  updateBackupStatusUI();
 });
 document.getElementById('pullNowBtn').addEventListener('click', async () => {
-  try { await pullFromCloud(); showToast('Pulled latest from GitHub', 'success'); }
-  catch (err) { showToast('Pull failed: ' + err.message, 'error'); }
+  if (!confirm('Restore from GitHub will replace your current local library with the GitHub backup. Continue?')) return;
+  await restoreFromGitHub();
 });
 document.getElementById('pushNowBtn').addEventListener('click', async () => {
-  try { await pushLibrary(); await pushConfig(); showToast('Pushed to GitHub', 'success'); }
-  catch (err) { showToast('Push failed: ' + err.message, 'error'); }
+  await backupToGitHub();
 });
 
-// ----- Wizard -----
-function openWizard() {
-  showWizardStep(1);
-  document.getElementById('wizardModal').classList.add('open');
+function refreshSettingsBackupUI() {
+  const statusEl = document.getElementById('syncStatus');
+  const detailsEl = document.getElementById('syncDetails');
+  if (!statusEl) return;
+  const c = ghCfg();
+  if (!isGhConfigured()) {
+    statusEl.innerHTML = `Status: <span class="status-pill disconnected">Not configured</span>`;
+    detailsEl.textContent = 'Add GitHub credentials below to enable backups.';
+    return;
+  }
+  const status = getBackupStatus();
+  const pillClass = status.isStale ? 'disconnected' : 'connected';
+  const pillText = status.hasNeverBackedUp ? 'Never backed up' :
+                   status.isStale ? 'Backup stale' : 'Up to date';
+  statusEl.innerHTML = `Status: <span class="status-pill ${pillClass}">${pillText}</span>`;
+  let detail = `Repo: ${c.owner}/${c.repo}`;
+  if (status.lastBackupAt > 0) {
+    const d = new Date(status.lastBackupAt);
+    detail += ` · Last backup: ${d.toLocaleString()}`;
+  }
+  detailsEl.textContent = detail;
+}
+
+// ----- First-launch restore prompt -----
+// When the local DB is empty but GitHub credentials are present (e.g. fresh
+// install on a new device, or after Clear Data), we offer to restore from
+// the existing GitHub backup rather than starting blank.
+function showRestorePrompt() {
+  document.getElementById('restoreModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function closeWizard() {
-  document.getElementById('wizardModal').classList.remove('open');
+function closeRestorePrompt() {
+  document.getElementById('restoreModal').classList.remove('open');
   document.body.style.overflow = '';
 }
-function showWizardStep(n) {
-  document.querySelectorAll('.wizard-step').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.step) === n);
-  });
-  document.querySelectorAll('.wizard-dot').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.step) <= n);
-  });
-}
-document.getElementById('wizNext1').addEventListener('click', () => showWizardStep(2));
-document.getElementById('wizBack2').addEventListener('click', () => showWizardStep(1));
-document.getElementById('wizBack3').addEventListener('click', () => showWizardStep(2));
-document.getElementById('wizNext2').addEventListener('click', async () => {
-  const owner = document.getElementById('wizOwner').value.trim();
-  const repo = document.getElementById('wizRepo').value.trim();
-  const branch = document.getElementById('wizBranch').value.trim() || 'main';
-  const token = document.getElementById('wizToken').value.trim();
-  if (!owner || !repo || !token) { showToast('All fields required', 'error'); return; }
-  setGhCfg({ owner, repo, branch, token });
-  try {
-    showToast('Testing connection...');
-    await pullFromCloud();
-    document.getElementById('wizDiscogs').value = state.config.discogs_token || '';
-    document.getElementById('wizTmdb').value = state.config.tmdb_token || '';
-    showWizardStep(3);
-  } catch (err) {
-    showToast('Connection test failed: ' + err.message, 'error');
-  }
+document.getElementById('restoreYesBtn').addEventListener('click', async () => {
+  closeRestorePrompt();
+  await restoreFromGitHub();
 });
-document.getElementById('wizFinish').addEventListener('click', async () => {
-  state.config.discogs_token = document.getElementById('wizDiscogs').value.trim();
-  state.config.tmdb_token = document.getElementById('wizTmdb').value.trim();
-  saveLocalCache();
-  try {
-    await pushConfig();
-    if (!localStorage.getItem(LS_KEYS.librarySha)) await pushLibrary();
-    closeWizard();
-    showToast('Setup complete', 'success');
-  } catch (err) {
-    showToast('Final save failed: ' + err.message, 'error');
-  }
+document.getElementById('restoreNoBtn').addEventListener('click', () => {
+  closeRestorePrompt();
+  showToast('Starting with empty library. You can restore later from Settings.', '');
 });
 
 // ----- Boot -----
 (async function init() {
-  loadLocalCache();
-  renderAll();
-  if (!isConfigured()) {
-    setSyncStatus('init');
-    openWizard();
+  try {
+    await openDb();
+  } catch (err) {
+    showToast('Failed to open local database: ' + err.message, 'error');
     return;
   }
+  // Load all items from IndexedDB into memory for fast rendering.
   try {
-    await pullFromCloud();
+    state.items = await dbGetAllItems();
   } catch (err) {
-    if (err.message.includes('401') || err.message.includes('403')) {
-      showToast('GitHub auth failed — check token in Settings → Advanced', 'error');
-    } else {
-      setSyncStatus('error', err.message);
-    }
+    console.error('Failed to load items:', err);
+    state.items = [];
+  }
+  renderAll();
+  updateBackupStatusUI();
+
+  // First-launch logic: if DB is empty AND we have GitHub credentials,
+  // offer to restore. This handles the "I just reinstalled the app on
+  // a new device" case.
+  if (state.items.length === 0 && isGhConfigured()) {
+    showRestorePrompt();
   }
 })();
 </script>
