@@ -677,37 +677,41 @@ function fetchWithTimeout(url, opts = {}, ms = 10000) {
 // pull the fresh version and let the user know to re-apply their changes.
 //
 // Note: GitHub's Contents API only inlines file content (as base64 in `data.content`)
-// for files under ~1 MB. For larger files, `data.content` is empty and we have
-// to fall back to `data.download_url` to fetch the raw file directly. A growing
-// library with embedded base64 images can easily exceed 1 MB.
+// for files under ~1 MB. For larger files, `data.content` is empty. We work around
+// this by making two requests: one with the default Accept header to get metadata
+// including the SHA (we need this for writes), and a second with the raw Accept
+// header to get the file body. This avoids the download_url path, which is a
+// short-lived signed URL that doesn't work for private repos with our auth setup.
 async function ghReadFile(path) {
   const c = ghCfg();
-  const url = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}?ref=${encodeURIComponent(c.branch)}`;
-  const resp = await fetchWithTimeout(url, {
+  const apiUrl = `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${path}?ref=${encodeURIComponent(c.branch)}`;
+  // First request: get metadata (especially the SHA, which we need on writes).
+  const metaResp = await fetchWithTimeout(apiUrl, {
     headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json' },
   });
-  if (resp.status === 404) return { exists: false, content: null, sha: null };
-  if (!resp.ok) {
-    const errTxt = await resp.text();
-    throw new Error(`GitHub read ${resp.status}: ${errTxt.slice(0, 200)}`);
+  if (metaResp.status === 404) return { exists: false, content: null, sha: null };
+  if (!metaResp.ok) {
+    const errTxt = await metaResp.text();
+    throw new Error(`GitHub read ${metaResp.status}: ${errTxt.slice(0, 200)}`);
   }
-  const data = await resp.json();
+  const meta = await metaResp.json();
   let content;
-  if (data.content && data.content.length > 0) {
-    // Small file — content is inlined as base64.
-    content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
-  } else if (data.download_url) {
-    // Large file — fetch raw content from the download_url.
-    // Note: download_url is a signed URL that works without the bearer token.
-    const rawResp = await fetchWithTimeout(data.download_url, {}, 30000);
+  if (meta.content && meta.content.length > 0) {
+    // Small file — content is inlined as base64 in the metadata response.
+    content = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
+  } else {
+    // Large file — fetch raw content from the same URL with a raw Accept header.
+    // This uses the same Bearer token, so it works for private repos.
+    const rawResp = await fetchWithTimeout(apiUrl, {
+      headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github.raw+json' },
+    }, 30000);
     if (!rawResp.ok) {
-      throw new Error(`GitHub raw download ${rawResp.status}`);
+      const errTxt = await rawResp.text();
+      throw new Error(`GitHub raw read ${rawResp.status}: ${errTxt.slice(0, 200)}`);
     }
     content = await rawResp.text();
-  } else {
-    throw new Error('GitHub returned a file with no content and no download_url');
   }
-  return { exists: true, content, sha: data.sha };
+  return { exists: true, content, sha: meta.sha };
 }
 async function ghWriteFile(path, content, sha, message) {
   const c = ghCfg();
