@@ -655,16 +655,19 @@ async function urlToCompressedDataURL(url, maxDim = 1000, quality = 0.85) {
 
 // fetch() with a timeout. Without this, a hung server leaves the UI spinning forever.
 // 10 seconds is generous for any of the APIs we hit; we use 15s for image downloads
-// since cover images can be slightly larger.
+// and GitHub writes since those tend to be larger.
+//
+// We use Promise.race rather than AbortController because some sandboxed preview
+// environments (Claude artifacts, CodeSandbox, etc.) intercept fetch and choke
+// when an AbortSignal is passed — they can't structured-clone it for postMessage.
+// Real browsers handle either pattern fine; this just keeps both working.
 function fetchWithTimeout(url, opts = {}, ms = 10000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  return fetch(url, { ...opts, signal: controller.signal })
-    .finally(() => clearTimeout(timer))
-    .catch(err => {
-      if (err.name === 'AbortError') throw new Error('Request timed out');
-      throw err;
-    });
+  return Promise.race([
+    fetch(url, opts),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out')), ms)
+    ),
+  ]);
 }
 
 // ----- GitHub API -----
