@@ -1677,20 +1677,25 @@ document.getElementById('restoreNoBtn').addEventListener('click', () => {
     showToast('Failed to open local database: ' + err.message, 'error');
     return;
   }
-  // Load all items from IndexedDB into memory for fast rendering.
+  // Track whether DB read genuinely succeeded vs. errored. Only show the
+  // restore prompt on a real "DB is empty" signal — never on a read error,
+  // which could mask the user's existing library behind a misleading prompt.
+  let dbReadSucceeded = false;
   try {
     state.items = await dbGetAllItems();
+    dbReadSucceeded = true;
   } catch (err) {
     console.error('Failed to load items:', err);
     state.items = [];
+    showToast('Could not read local library — try reopening the app', 'error');
   }
   renderAll();
   updateBackupStatusUI();
 
-  // First-launch logic: if DB is empty AND we have GitHub credentials,
-  // offer to restore. This handles the "I just reinstalled the app on
-  // a new device" case.
-  if (state.items.length === 0 && isGhConfigured()) {
+  // First-launch logic: only offer restore if we KNOW the DB is empty
+  // (not if a read failed). Avoids the case where the prompt appears
+  // and the user accidentally overwrites real data.
+  if (dbReadSucceeded && state.items.length === 0 && isGhConfigured()) {
     showRestorePrompt();
   }
 })();
